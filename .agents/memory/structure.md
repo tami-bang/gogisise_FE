@@ -1,65 +1,103 @@
-# 프로젝트 표준 폴더 구조 (실시간 반영)
+# 프로젝트 디렉토리 구조 (Project Structure)
 
-> 💡 이 파일은 에이전트가 \`/structure\` 명령을 받아 실시간 트리 구조를 기반으로 자동 갱신한 메모리입니다.
+> 💡 본 문서의 목적은 현재 프로젝트의 최신 구조를 정의하고 동기화하는 것입니다. 에이전트가 `/structure` 명령을 통해 실시간 트리 구조를 기반으로 자동 갱신한 메모리입니다.
 
-## 📁 디렉토리 트리
+## 📁 전체 구조 트리 (주석포함)
 ```text
 .
-├── docs
-│   ├── bible
-│   │   ├── FUNCTIONS.md
-│   │   ├── PRD.md
-│   │   └── TECHSTACK.md
-│   └── design
-│       ├── components
-│       │   ├── 1_button.md
-│       │   ├── 2_card.md
-│       │   ├── 3_badge.md
-│       │   ├── 4_chart.md
-│       │   ├── 5_header_footer.md
-│       │   ├── 6_toggle_tab.md
-│       │   └── 7_grid_tile.md
-│       ├── pages
-│       │   ├── 0_main(mobile).md
-│       │   ├── 0_main(window).md
-│       │   ├── 1_detail_price.md
-│       │   ├── 2_onboarding_step1_textsize.md
-│       │   ├── 3_onboarding_step2_selectcategory.md
-│       │   └── 4_onboarding_step3_searchableselect.md
-│       └── BASE.md
-├── web
-│   ├── public
-│   │   ├── favicon.svg
-│   │   └── icons.svg
-│   ├── src
-│   │   ├── api
-│   │   │   └── priceApi.js
-│   │   ├── assets
-│   │   │   ├── hero.png
-│   │   │   ├── react.svg
-│   │   │   └── vite.svg
-│   │   ├── data
-│   │   │   └── mockData.js
-│   │   ├── ui
-│   │   │   ├── pages
-│   │   │   └── utils
-│   │   ├── App.css
-│   │   ├── App.jsx
-│   │   ├── index.css
-│   │   └── main.jsx
-│   ├── README.md
-│   ├── index.html
-│   ├── package-lock.json
-│   ├── package.json
-│   └── vite.config.js
-└── index_prototype.html
+├── dist                                   # 프로덕션 배포용 빌드 결과물(출하 대기 물품)
+│   ├── assets                             # 빌드된 정적 리소스(JS/CSS)
+│   │   ├── index-1Ymzf4hi.js              # 번들링된 메인 자바스크립트 코드
+│   │   └── index-BzhAdxdw.css             # 번들링된 통합 스타일 시트
+│   ├── favicon.svg                        # 빌드된 파비콘 이미지
+│   ├── icons.svg                          # 빌드된 아이콘 스프라이트
+│   └── index.html                         # 배포용 최종 진입점 HTML
+├── docs                                   # 프로젝트 관련 기획 및 디자인 문서(설계도) 보관
+│   ├── bible                              # 프로젝트 핵심 원칙 및 명세서(바이블)
+│   │   ├── FUNCTIONS.md                   # 상세 기능 명세서
+│   │   ├── PRD.md                         # 제품 요구사항 정의서 (기획의도)
+│   │   ├── TECHSTACK.md                   # 프론트엔드 및 백엔드 기술 스택 명세
+│   │   └── commit_convenvion.md           # 깃 커밋 메시지 규칙 가이드
+│   └── design                             # 화면 설계 및 컴포넌트 디자인 시스템
+│       ├── components                     # 공통 재사용 UI 컴포넌트 명세
+│       │   ├── 1_button.md                # 버튼 컴포넌트 스펙 및 상태 명세
+│       │   ├── 2_card.md                  # 카드 레이아웃 컴포넌트 명세
+│       │   ├── 3_badge.md                 # 뱃지(알림/라벨) 컴포넌트 명세
+│       │   ├── 4_chart.md                 # 시세 차트 등 그래프 컴포넌트 명세
+│       │   ├── 5_header_footer.md         # 상단 헤더 및 하단 푸터 영역 명세
+│       │   ├── 6_toggle_tab.md            # 토글 및 탭 전환 컴포넌트 명세
+│       │   └── 7_grid_tile.md             # 그리드 뷰 및 타일 레이아웃 명세
+│       ├── pages                          # 개별 화면(페이지)별 UI/UX 명세
+│       │   ├── 0_main(mobile).md          # 모바일 뷰어용 메인 화면 명세
+│       │   ├── 0_main(window).md          # 데스크탑/웹용 메인 화면 명세
+│       │   ├── 1_detail_price.md          # 가격 상세 시세 조회 화면 명세
+│       │   ├── 2_onboarding_step1_textsize.md # 텍스트 크기 설정 온보딩 화면
+│       │   ├── 3_onboarding_step2_selectcategory.md # 관심 카테고리 선택 온보딩 화면
+│       │   └── 4_onboarding_step3_searchableselect.md # 검색 가능 선택 UI 온보딩 화면
+│       └── BASE.md                        # 타이포그래피, 색상 등 기본 디자인 시스템
+├── public                                 # 빌드 시 그대로 복사되는 정적 에셋 폴더
+│   ├── favicon.svg                        # 브라우저 탭에 표시되는 파비콘 아이콘
+│   └── icons.svg                          # 공통으로 사용되는 SVG 아이콘 스프라이트 모음
+├── src                                    # 애플리케이션의 핵심 소스 코드 (작업 현장)
+│   ├── api                                # 외부 통신 및 데이터 패칭 계층
+│   │   ├── mock                           # API 모킹 데이터 및 로직
+│   │   │   └── marketMock.ts              # 시세 조회를 위한 임시 하드코딩 데이터
+│   │   ├── services                       # 실제 비즈니스 통신 로직
+│   │   │   └── marketService.ts           # 시세 조회 데이터 요청/응답 처리 함수
+│   │   ├── types                          # 통신에 사용되는 타입스크립트 인터페이스
+│   │   │   └── market.ts                  # 데이터 타입 정의 및 모델
+│   │   └── index.ts                       # API 모듈 외부 공개 엔트리
+│   ├── assets                             # 빌더에 의해 처리되는 컴포넌트 종속 에셋
+│   │   ├── hero.png                       # 메인 화면 등에 사용되는 히어로 이미지
+│   │   └── vite.svg                       # Vite 빌드 툴 로고 이미지
+│   ├── components                         # 화면을 구성하는 React 컴포넌트 폴더
+│   │   ├── common                         # 도메인에 종속되지 않은 공통 컴포넌트
+│   │   │   ├── Footer.tsx                 # 하단 푸터 영역 컴포넌트
+│   │   │   ├── Header.tsx                 # 상단 헤더 영역 컴포넌트
+│   │   │   └── Layout.tsx                 # 페이지 전체 레이아웃 래퍼 컴포넌트
+│   │   └── domain                         # 특정 비즈니스 로직(시세 등) 종속 컴포넌트
+│   │       ├── FavoritePriceList.tsx      # 관심 시세 리스트 출력 컴포넌트
+│   │       ├── KakaoShareButton.tsx       # 카카오톡 공유 기능 버튼 컴포넌트
+│   │       ├── PriceCard.tsx              # 개별 품목 시세 정보 표시 카드 컴포넌트
+│   │       └── SummaryStats.tsx           # 요약 통계 정보 표시 컴포넌트
+│   ├── pages                              # 라우팅 단위 화면 컨테이너 폴더
+│   │   └── MainPage.tsx                 # 앱 진입 시 보이는 메인 화면 컴포넌트
+│   ├── utils                              # 전역적으로 사용되는 유틸리티 함수 모음
+│   │   └── formatter.ts                 # 가격 포맷팅 등 데이터 변환 헬퍼 함수
+│   ├── App.tsx                            # 최상위 라우팅 및 전역 상태 관리 컴포넌트
+│   ├── index.css                          # 애플리케이션 전체 글로벌 스타일 시트
+│   └── main.tsx                           # React 앱을 브라우저 DOM에 렌더링하는 엔트리 포인트
+├── README.md                              # 프로젝트 실행 및 환경 설정 가이드문서
+├── index.html                             # SPA 렌더링 컨테이너가 되는 메인 마크업 문서
+├── package-lock.json                      # NPM 패키지 의존성 트리의 버전 잠금 파일
+├── package.json                           # 라이브러리 의존성 목록 및 실행 스크립트 명세
+├── tsconfig.app.json                      # 프론트엔드 앱 실행 코드를 위한 타입스크립트 설정
+├── tsconfig.json                          # 전체 프로젝트 타입스크립트 베이스 설정 파일
+├── tsconfig.node.json                     # 빌드 도구(Vite)를 위한 Node.js 환경 타입스크립트 설정
+└── vite.config.ts                         # Vite 번들러 구동 및 개발 서버 환경 설정 파일
 
-15 directories, 34 files
+20 directories, 51 files
 ```
-## 📝 폴더별 핵심 역할 (주석)
-- **.agents/memory/**: AI 에이전트의 영속적 기억 저장소
-- **web/src/api/**: 외부 서버 통신 및 비동기 Mocking 로직 담당
-- **web/src/data/**: 변하지 않는 정적 상수 및 차트용 더미 데이터 창고
-- **web/src/ui/pages/**: 라우팅에 의해 제어되는 독립적인 화면 컴포넌트 모음
-- **web/src/ui/utils/**: 공통 스타일 및 헬퍼 함수(\`textStyle.js\` 등) 보관
-- **web/src/App.jsx**: 전역 상태 및 화면 전환을 제어하는 중앙 라우터
+
+## 🧠 주요 폴더 및 파일 설명 (비유: IT 회사의 조직 및 설계도)
+
+이 프로젝트를 하나의 **'IT 회사 조직'과 그 '설계도'**에 비유하여 설명합니다.
+
+1. **`docs/` (기획/디자인 부서 & 회사 설계도)**
+   - 회사의 나아갈 방향과 규칙, 화면의 청사진을 보관하는 곳입니다.
+   - **`bible/`**: 회사의 핵심 가치와 요구사항, 기술 스택을 명시하는 '헌법' 역할을 합니다.
+   - **`design/`**: 디자이너와 기획자가 구상한 UI/UX 설계도면(컴포넌트 및 페이지 명세)들이 모여있습니다.
+
+2. **`src/` (본사 작업 현장 - 엔지니어링 본부)**
+   - 회사의 실질적인 제품(프론트엔드 앱)을 만들어내는 주요 생산 공장입니다. TypeScript 기반으로 업그레이드되어 더욱 견고하게 운영됩니다.
+   - **`api/` (통신팀)**: 외부 데이터 소스와의 인터페이스를 담당하며, 모델(`types`), 모의 데이터(`mock`), 실제 요청(`services`)으로 세분화되어 전문적으로 일합니다.
+   - **`components/` (조립 공정)**: 공용 부품(`common`)과 도메인 특화 부품(`domain`)을 모듈화하여 조립 라인을 효율화합니다.
+   - **`pages/` (최종 쇼룸)**: 만들어진 컴포넌트들을 모아 사용자에게 보여주는 실제 화면 단위의 결과물입니다.
+   - **`App.tsx` (총괄 매니저)**: 사용자가 어떤 화면으로 가야 할지 안내(라우팅)하고, 전체적인 흐름을 조율합니다.
+
+3. **`dist/` & `public/` (물류 창고 및 출하 센터)**
+   - 고객에게 최종적으로 전달될 정적 자산과 번들링된 완성품이 보관되고 출하되는 곳입니다.
+
+4. **`.agents/` (경영 지원 AI 로봇 - 영속적 기억 장치)**
+   - 현재 디렉토리 트리에는 노출되지 않지만, 프로젝트의 흐름과 규칙을 관리하는 두뇌입니다.
+   - `memory/`를 통해 현재 상태와 프로젝트 개요를 잊지 않고 기억하며, `rules/`와 `workflows/`를 통해 정해진 지침에 따라 업무를 완벽하게 보조합니다.
