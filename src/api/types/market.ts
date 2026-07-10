@@ -9,15 +9,21 @@ export interface MarketSummary {
 
 export interface PriceItem {
   id: string;
-  category: 'BEEF' | 'PORK';
-  name: string;
+  species: 'BEEF' | 'PORK';
+  storageType: 'CHILLED' | 'FROZEN';
+  category: string;
+  detailName: string;
   price: number;
   changeValue: number;
   status: TrendStatus;
+  isFavorite: boolean;
 }
 
 export interface MarketServiceConfig {
   delay?: number;
   shouldFail?: boolean;
   isEmpty?: boolean;
+  page?: number;
+  limit?: number;
+  storageType?: 'CHILLED' | 'FROZEN';
 }

@@ -1,4 +1,5 @@
 import type { MarketSummary, PriceItem } from '../../api';
+import { Button } from '../common/Button';
 
 interface Props {
   summary: MarketSummary | null;
@@ -19,13 +20,14 @@ export function KakaoShareButton({ summary, items }: Props) {
 
   return (
     <div className="mt-8 px-5">
-      <button
+      <Button
+        variant="kakao"
         onClick={handleShare}
-        className="w-full flex items-center justify-center gap-3 bg-(--color-point-yellow) h-16 rounded-[var(--radius-lg)] text-body-lg text-(--text-strong) font-bold active:scale-[0.98] transition-transform duration-200"
+        className="w-full gap-3"
       >
         <span className="text-3xl" aria-hidden="true">💬</span>
         카카오톡으로 오늘 시세 보내기
-      </button>
+      </Button>
     </div>
   );
 }

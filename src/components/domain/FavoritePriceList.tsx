@@ -8,8 +8,10 @@ interface Props {
 export function FavoritePriceList({ items }: Props) {
   if (items.length === 0) {
     return (
-      <div className="py-10 text-center text-(--text-muted) text-body-lg">
-        즐겨찾기 항목이 없습니다.
+      <div className="py-12 flex flex-col items-center justify-center text-center bg-[var(--color-surface-soft)] rounded-[var(--radius-xl)] border border-[var(--color-divider)]">
+        <span className="text-4xl mb-3" aria-hidden="true">⭐</span>
+        <h3 className="text-title text-[var(--text-strong)] font-bold mb-1">관심 부위가 없어요</h3>
+        <p className="text-body text-[var(--text-muted)]">자주 찾는 부위를 추가해 보세요</p>
       </div>
     );
   }
