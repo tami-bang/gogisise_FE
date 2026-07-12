@@ -97,19 +97,27 @@ export function PriceDetailSheet({
 
   return (
     <>
+      {/* Dimmed Overlay */}
       <div 
-        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 z-[90] bg-black/50 transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={(e) => {
           if (confirmState === 'idle' && e.target === e.currentTarget) onClose();
         }}
-        // @ts-ignore inert는 React 19부터 정식 지원되지만 속성 자체는 동작함
+        // @ts-ignore
+        inert={isSheetInert ? "" : undefined}
+      />
+      
+      {/* Sheet Container */}
+      <div 
+        className={`fixed inset-0 z-[100] flex justify-center items-end pointer-events-none ${isOpen ? '' : 'pointer-events-none'}`}
+        // @ts-ignore
         inert={isSheetInert ? "" : undefined}
       >
         <div 
           ref={sheetRef}
           role="dialog"
           aria-modal="true"
-          className={`absolute bottom-0 left-0 right-0 max-h-[90vh] bg-[var(--color-surface)] rounded-t-[var(--radius-xl)] flex flex-col transform transition-transform duration-300 ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}
+          className={`relative w-full max-w-md max-h-[88dvh] pointer-events-auto bg-[var(--color-surface)] rounded-t-[var(--radius-2xl)] flex flex-col transform transition-transform duration-300 shadow-[var(--shadow-modal)] ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}
           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
           {/* 핸들 바 */}
