@@ -30,3 +30,51 @@ export interface MarketServiceConfig {
   storageType?: 'CHILLED' | 'FROZEN';
   animalType?: 'BEEF' | 'PORK'; // 추가됨: 축종 필터링
 }
+
+export type ExclusionReason =
+  | 'INVALID_PRICE'
+  | 'UNIT_MISMATCH'
+  | 'SOLD_OUT'
+  | 'DUPLICATE'
+  | 'CONDITION_MISMATCH'
+  | 'OUTLIER';
+
+export interface SourcePriceRecord {
+  id: string;
+  sourceName: string;
+  originalProductName: string;
+  price: number;
+  unit: string;
+  collectedAt: string;
+  sourceUrl?: string;
+  includedInAverage: boolean;
+  exclusionReason?: ExclusionReason;
+}
+
+export interface AggregatedPriceDetail {
+  itemId: string;
+  fullDisplayName: string;
+  animalType: 'BEEF' | 'PORK';
+  storageType: 'CHILLED' | 'FROZEN';
+  grade?: string;
+
+  averagePrice: number;
+  previousAveragePrice?: number;
+  changeAmount: number;
+  changeRate?: number;
+  status: TrendStatus;
+
+  aggregationVersion: string;
+  calculatedAt: string;
+  sourceRecordCount: number;
+  includedCount: number;
+  excludedCount: number;
+  unit: string;
+  currency: string;
+
+  minPrice: number;
+  maxPrice: number;
+  medianPrice?: number;
+
+  sourceRecords: SourcePriceRecord[];
+}

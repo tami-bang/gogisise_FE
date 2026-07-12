@@ -1,4 +1,5 @@
-import type { MarketSummary, PriceItem, TrendStatus } from '../types/market';
+import type { MarketSummary, PriceItem, TrendStatus, SourcePriceRecord, AggregatedPriceDetail } from '../types/market';
+import { calculateAveragePrice } from '../services/priceAggregationService';
 
 export const mockMarketSummary: MarketSummary = {
   trendStatus: 'RISE',
@@ -6,6 +7,8 @@ export const mockMarketSummary: MarketSummary = {
   beefSummary: { value: 1200, status: 'RISE' },
   porkSummary: { value: -350, status: 'FALL' },
 };
+
+export const mockAggregatedDetails: Record<string, AggregatedPriceDetail> = {};
 
 // 동적으로 실매물 데이터를 생성합니다. (CATEGORIES.md 기반)
 const generateMockPrices = (): PriceItem[] => {
@@ -39,7 +42,7 @@ const generateMockPrices = (): PriceItem[] => {
           change = -(Math.floor(Math.random() * 1000) + 100);
         }
 
-        const price = basePrice + (index * 1200) + (i * 300) + change;
+        const calculatedBase = basePrice + (index * 1200) + (i * 300) + change;
         
         let grade = undefined;
         let detailName = '';
@@ -50,20 +53,74 @@ const generateMockPrices = (): PriceItem[] => {
             grade = i === 1 ? '1등급' : (i === 2 ? '2등급' : '등외');
             detailName = `한돈 암퇘지 ${cat}`;
         }
+        
+        const fullDisplayName = `${species === 'BEEF' ? '한우 암소' : '한돈 암퇘지'} ${storageType === 'CHILLED' ? '냉장' : '냉동'} ${cat} ${grade || ''}`.trim();
+        const id = String(idCounter++);
+        
+        // 원본 데이터(SourcePriceRecord) 생성
+        const sourceRecords: SourcePriceRecord[] = [];
+        const sourceCount = Math.floor(Math.random() * 5) + 3; // 3~7곳
+        const sourceNames = ['금천미트', '미트박스', '협신식품', '도드람', '선진포크', '목우촌', '하이포크'];
+        
+        for (let j = 0; j < sourceCount; j++) {
+          const isOutlier = Math.random() < 0.1;
+          const isIncluded = !isOutlier;
+          const randomDiff = Math.floor(Math.random() * 2000) - 1000;
+          let sourcePrice = calculatedBase + randomDiff;
+          
+          if (isOutlier) {
+             sourcePrice = sourcePrice * 0.5; // 이상치
+          }
+          
+          sourceRecords.push({
+            id: `src-${id}-${j}`,
+            sourceName: sourceNames[j % sourceNames.length],
+            originalProductName: fullDisplayName,
+            price: sourcePrice,
+            unit: '1kg',
+            collectedAt: new Date(Date.now() - Math.floor(Math.random() * 10000000)).toISOString(),
+            includedInAverage: isIncluded,
+            exclusionReason: isIncluded ? undefined : 'OUTLIER',
+          });
+        }
+        
+        const { averagePrice, includedCount, excludedCount, sourceRecordCount, minPrice, maxPrice } = calculateAveragePrice(sourceRecords);
+        const aggregationVersion = 'v1.0.0';
+
+        mockAggregatedDetails[id] = {
+          itemId: id,
+          fullDisplayName,
+          animalType: species,
+          storageType,
+          grade,
+          averagePrice,
+          previousAveragePrice: averagePrice - change,
+          changeAmount: change,
+          status,
+          aggregationVersion,
+          calculatedAt: new Date().toISOString(),
+          sourceRecordCount,
+          includedCount,
+          excludedCount,
+          unit: '1kg',
+          currency: 'KRW',
+          minPrice,
+          maxPrice,
+          sourceRecords
+        };
 
         items.push({
-          id: String(idCounter++),
+          id,
           species,
           storageType,
           category: cat,
           detailName,
-          displayName: cat, // 표시용으로는 부위명(cat)만 사용
+          displayName: cat,
           grade,
-          price,
+          price: averagePrice, // priceAggregationService 에서 나온 값으로 정합성 100% 일치
           changeValue: change,
           status,
-          // 테스트용: 일부 항목을 즐겨찾기로 설정
-          isFavorite: idCounter % 8 === 0 || idCounter === 2 || idCounter === 3,
+          isFavorite: false, // 즐겨찾기 값은 useFavorites 에서 전역 관리하므로 초기값 false
         });
       }
     });

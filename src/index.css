@@ -76,6 +76,28 @@
     font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
     line-height: 1.5;
   }
+
+  :root[data-font-size="large"] {
+    --text-display: 34px;
+    --text-headline: 30px;
+    --text-title-xl: 26px;
+    --text-title: 24px;
+    --text-body-lg: 22px;
+    --text-body: 20px;
+    --text-label: 18px;
+    --text-caption: 16px;
+  }
+
+  :root[data-font-size="xlarge"] {
+    --text-display: 36px;
+    --text-headline: 32px;
+    --text-title-xl: 28px;
+    --text-title: 26px;
+    --text-body-lg: 24px;
+    --text-body: 22px;
+    --text-label: 20px;
+    --text-caption: 18px;
+  }
 }
 
 @layer utilities {

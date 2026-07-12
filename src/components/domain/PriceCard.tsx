@@ -4,15 +4,19 @@ import { Badge } from '../common/Badge';
 
 interface Props {
   item: PriceItem;
+  onClick?: (id: string) => void;
+  id?: string;
 }
 
-export function PriceCard({ item }: Props) {
+export function PriceCard({ item, onClick, id }: Props) {
   const gradeDisplay = item.grade || '-';
   const nameDisplay = item.displayName ?? item.detailName;
   
   return (
     <button 
-      className="w-full text-left bg-[var(--color-surface)] p-5 rounded-[var(--radius-xl)] border border-[var(--color-divider)] shadow-soft active:scale-[0.98] active:bg-[#f5f5f5] transition-transform duration-200"
+      id={id}
+      onClick={() => onClick && onClick(item.id)}
+      className="w-full text-left bg-[var(--color-surface)] p-5 rounded-[var(--radius-xl)] border border-[var(--color-divider)] shadow-soft active:scale-[0.98] active:bg-[#f5f5f5] transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
     >
       <div className="flex justify-between items-center mb-2">
         <span className="text-body-lg text-[var(--text-default)] font-bold">{nameDisplay}</span>

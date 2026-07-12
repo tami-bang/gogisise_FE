@@ -1,4 +1,5 @@
-import { useEffect, useState, useRef, useCallback, useLayoutEffect } from 'react';
+import { useEffect, useState, useRef, useCallback, useLayoutEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { MarketSummary, PriceItem } from '../api';
 import { marketService } from '../api';
 import { Layout } from '../components/common/Layout';
@@ -16,24 +17,28 @@ import { SummaryStats } from '../components/domain/SummaryStats';
 import { FavoritePriceList } from '../components/domain/FavoritePriceList';
 import { KakaoShareButton } from '../components/domain/KakaoShareButton';
 import { FavoriteShareSheet } from '../components/domain/FavoriteShareSheet';
+import { PriceDetailSheet } from '../components/domain/price-detail/PriceDetailSheet';
 import { selectableStateClass } from '../utils/styles';
+import { useFavorites } from '../hooks/useFavorites';
 
 type AsyncStatus = 'idle' | 'loading' | 'success' | 'empty' | 'error';
+const ITEMS_PER_PAGE = 15;
 
 export function MainPage() {
+  const navigate = useNavigate();
+  const { favorites } = useFavorites();
+  
   const [appStep, setAppStep] = useState<'select' | 'list'>('select');
   const [animalType, setAnimalType] = useState<'BEEF' | 'PORK' | null>(null);
   const [storageType, setStorageType] = useState<'CHILLED' | 'FROZEN'>('CHILLED');
+  
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-
   const [summary, setSummary] = useState<MarketSummary | null>(null);
   const [items, setItems] = useState<PriceItem[]>([]);
 
   const [initialStatus, setInitialStatus] = useState<AsyncStatus>('loading');
   const [summaryStatus, setSummaryStatus] = useState<AsyncStatus>('idle');
   const [listStatus, setListStatus] = useState<AsyncStatus>('idle');
-  const [paginationStatus, setPaginationStatus] = useState<AsyncStatus>('idle');
   
   const [toastMessage, setToastMessage] = useState('');
   const [isToastVisible, setIsToastVisible] = useState(false);
@@ -49,7 +54,9 @@ export function MainPage() {
   const [isSharing, setIsSharing] = useState(false);
   const [lastFocusedElement, setLastFocusedElement] = useState<HTMLElement | null>(null);
 
-  const listRequestId = useRef(0);
+  // Detail Sheet state
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+
   const mainRef = useRef<HTMLElement>(null);
   const listTopRef = useRef<HTMLDivElement>(null);
 
@@ -95,54 +102,54 @@ export function MainPage() {
     };
   }, [initialStatus, loadInitialData, showToast]);
 
+  // 즐겨찾기 목록 메모리 필터링 및 페이징
+  const filteredFavorites = useMemo(() => {
+    if (!animalType) return [];
+    return favorites.filter(f => f.animalType === animalType && f.storageType === storageType);
+  }, [favorites, animalType, storageType]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredFavorites.length / ITEMS_PER_PAGE));
+
+  // 페이지 보정: 만약 삭제 등으로 현재 페이지가 totalPages보다 커지면 보정
+  useEffect(() => {
+    if (filteredFavorites.length > 0 && page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [filteredFavorites.length, page, totalPages]);
+
   useEffect(() => {
     if (appStep !== 'list' || !animalType) return;
 
     const fetchList = async () => {
-      const currentReqId = ++listRequestId.current;
-      
-      if (page === 1) {
-        setListStatus('loading');
-      } else {
-        setPaginationStatus('loading');
+      if (filteredFavorites.length === 0) {
+        setListStatus('empty');
+        setItems([]);
+        return;
       }
 
+      setListStatus('loading');
       try {
-        const response = await marketService.getPrices({
-          animalType,
-          storageType,
-          page,
-          limit: 15
-        });
-
-        if (currentReqId !== listRequestId.current) return;
-
-        if (response.items.length === 0 && page === 1) {
-          setListStatus('empty');
-          setItems([]);
-        } else {
-          setListStatus('success');
-          setPaginationStatus('success');
-          
-          setItems(response.items);
-          setTotalPages(response.hasNextPage ? page + 1 : page);
-          setPageChangeTrigger(t => t + 1);
-        }
-      } catch (err) {
-        if (currentReqId !== listRequestId.current) return;
+        const startIndex = (page - 1) * ITEMS_PER_PAGE;
+        const pageFavorites = filteredFavorites.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+        const idsToFetch = pageFavorites.map(f => f.id);
         
+        const response = await marketService.getFavoritePrices(idsToFetch);
+        
+        // 정렬 순서를 유지하기 위해 ID 순서대로 매핑
+        const sortedResponse = idsToFetch.map(id => response.find(r => r.id === id)).filter(Boolean) as PriceItem[];
+        
+        setItems(sortedResponse);
+        setListStatus('success');
+        setPageChangeTrigger(t => t + 1);
+      } catch (err) {
         console.error(err);
-        if (page === 1) {
-          setListStatus('error');
-        } else {
-          setPaginationStatus('error');
-          showToast('다음 페이지를 불러오지 못했어요');
-        }
+        setListStatus('error');
+        showToast('시세를 불러오지 못했어요');
       }
     };
 
     fetchList();
-  }, [appStep, animalType, storageType, page, showToast]);
+  }, [appStep, animalType, storageType, page, filteredFavorites, showToast]);
 
   useLayoutEffect(() => {
     if (pageChangeTrigger > 0 && listStatus === 'success') {
@@ -171,7 +178,7 @@ export function MainPage() {
   };
 
   const handlePageChange = (newPage: number) => {
-    setPage(Math.min(newPage, totalPages || 1));
+    setPage(Math.min(newPage, totalPages));
   };
 
   const handleOpenShare = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -186,7 +193,6 @@ export function MainPage() {
   const handleCloseShare = () => {
     setIsShareModalOpen(false);
     if (lastFocusedElement) {
-      // Small delay to allow DOM to unmount modal before focusing back
       setTimeout(() => {
         lastFocusedElement.focus();
         setLastFocusedElement(null);
@@ -197,12 +203,9 @@ export function MainPage() {
   const handleConfirmShare = async () => {
     setIsSharing(true);
     try {
-      // Mock share delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
       setIsShareModalOpen(false);
       showToast('오늘 시세 공유를 시작했어요');
-      
       if (lastFocusedElement) {
         setTimeout(() => {
           lastFocusedElement.focus();
@@ -210,7 +213,6 @@ export function MainPage() {
         }, 10);
       }
     } catch (err) {
-      console.error(err);
       showToast('시세를 공유하지 못했어요. 다시 시도해주세요');
     } finally {
       setIsSharing(false);
@@ -223,6 +225,10 @@ export function MainPage() {
     setStorageType('CHILLED');
     setPage(1);
     setShowTooltip(false);
+  };
+
+  const handleNavigateToAll = () => {
+    navigate(`/all-prices?animalType=${animalType || 'BEEF'}&storageType=${storageType}`);
   };
 
   if (initialStatus === 'loading') {
@@ -257,10 +263,7 @@ export function MainPage() {
       <main ref={mainRef} className="flex flex-col flex-1 min-h-0 overflow-y-auto pt-[72px] pb-[96px] bg-[var(--color-bg)]">
         {summaryStatus === 'error' && (
           <div className="px-5 pt-6 flex-shrink-0">
-            <InlineError 
-              message="오늘의 시세 요약을 불러오지 못했어요" 
-              onRetry={loadInitialData} 
-            />
+            <InlineError message="오늘의 시세 요약을 불러오지 못했어요" onRetry={loadInitialData} />
           </div>
         )}
         
@@ -294,7 +297,7 @@ export function MainPage() {
                 </button>
               </div>
             )}
-
+            
             <section className="px-5 pb-6">
               <div ref={listTopRef} className="scroll-mt-[88px]" />
               <div className="flex bg-[var(--color-surface-soft)] rounded-[var(--radius-lg)] p-1 mb-6 gap-1">
@@ -323,35 +326,28 @@ export function MainPage() {
               {listStatus === 'loading' && <ListSkeleton />}
               
               {listStatus === 'error' && (
-                <InlineError 
-                  message="즐겨찾기 시세를 불러오지 못했어요" 
-                  onRetry={() => setPage(1)} 
-                />
+                <InlineError message="즐겨찾기 시세를 불러오지 못했어요" onRetry={() => setPage(page)} />
               )}
 
               {listStatus === 'empty' && (
                 <EmptyState 
                   title={`${animalType === 'BEEF' ? '한우' : '한돈'} ${storageType === 'CHILLED' ? '냉장' : '냉동'} 즐겨찾기가 없어요`}
                   description="전체 시세에서 자주 확인하는 품목을 추가해보세요"
+                  actionLabel="전체 시세에서 품목 찾기"
+                  onAction={handleNavigateToAll}
                 />
               )}
 
-              {listStatus === 'success' && (
+              {listStatus === 'success' && items.length > 0 && (
                 <>
-                  <FavoritePriceList items={items} />
+                  <FavoritePriceList items={items} onItemClick={setSelectedItemId} />
                   
                   {totalPages > 1 && (
                     <div className="mt-4">
-                      {paginationStatus === 'error' && (
-                        <div className="mb-2">
-                          <InlineError message="다음 페이지를 불러오지 못했어요" onRetry={() => setPage(page)} />
-                        </div>
-                      )}
                       <Pagination 
                         currentPage={page} 
                         totalPages={totalPages} 
                         onPageChange={handlePageChange} 
-                        disabled={paginationStatus === 'loading'}
                       />
                     </div>
                   )}
@@ -364,13 +360,26 @@ export function MainPage() {
         )}
       </main>
 
-      <Footer />
+      <Footer activeTab="favorite" />
       
       <FavoriteShareSheet
         isOpen={isShareModalOpen}
         isSharing={isSharing}
         onClose={handleCloseShare}
         onConfirm={handleConfirmShare}
+      />
+
+      <PriceDetailSheet
+        isOpen={selectedItemId !== null}
+        itemId={selectedItemId}
+        onClose={() => setSelectedItemId(null)}
+        onFavoriteRemoved={() => {
+          // 삭제 후 포커스 복구를 위해, 카드가 DOM에서 사라질 것이므로 적절한 요소에 포커스 부여가 필요합니다.
+          // 복잡성을 피하기 위해 여기서는 리스트 헤더나 EmptyState 액션 버튼 등으로 자동 복구됨 (브라우저 기본/React 기본 혹은 ConfirmDialog 닫힐 때 복구)
+          // `listTopRef` 로 포커스 이동 처리할 수 있습니다.
+          const focusTarget = document.getElementById('price-list-header');
+          if (focusTarget) focusTarget.focus();
+        }}
       />
 
       <Toast 

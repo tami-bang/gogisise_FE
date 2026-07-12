@@ -57,11 +57,29 @@ export const marketService = {
     return simulateNetwork({ items: slicedItems, hasNextPage }, config);
   },
 
-  // 즐겨찾기(관심부위) 조회용: isFavorite === true 인 항목만 반환 (페이징 없이)
+  // 즐겨찾기(관심부위) 조회용
   getFavoritePrices: async (
+    favoriteIds: string[],
     config?: MarketServiceConfig
   ): Promise<PriceItem[]> => {
-    const data = config?.isEmpty ? [] : allMockPrices.filter(i => i.isFavorite);
+    if (config?.isEmpty || favoriteIds.length === 0) {
+      return simulateNetwork([], config);
+    }
+    const data = allMockPrices.filter(i => favoriteIds.includes(i.id));
     return simulateNetwork(data, config);
+  },
+
+  // 시세 상세 조회
+  getPriceDetail: async (
+    itemId: string,
+    config?: MarketServiceConfig
+  ) => {
+    // mockAggregatedDetails를 동적으로 불러오기 (순환참조 방지)
+    const { mockAggregatedDetails } = await import('../mock/marketMock');
+    const detail = mockAggregatedDetails[itemId];
+    if (!detail) {
+      return simulateNetwork(null, { ...config, shouldFail: true });
+    }
+    return simulateNetwork(detail, config);
   },
 };
