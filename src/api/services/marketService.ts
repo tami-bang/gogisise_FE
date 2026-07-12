@@ -37,12 +37,16 @@ export const marketService = {
 
     let filtered = [...allMockPrices];
 
+    if (config?.animalType) {
+      filtered = filtered.filter(item => item.species === config.animalType);
+    }
+
     if (config?.storageType) {
       filtered = filtered.filter(item => item.storageType === config.storageType);
     }
 
     const page = config?.page ?? 1;
-    const limit = config?.limit ?? 20;
+    const limit = config?.limit ?? 15; // 기본값을 15로 수정
 
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;

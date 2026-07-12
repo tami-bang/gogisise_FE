@@ -41,12 +41,24 @@ const generateMockPrices = (): PriceItem[] => {
 
         const price = basePrice + (index * 1200) + (i * 300) + change;
         
+        let grade = undefined;
+        let detailName = '';
+        if (species === 'BEEF') {
+            grade = i === 1 ? '1++등급' : (i === 2 ? '1+등급' : '1등급');
+            detailName = `한우 암소 ${cat}`;
+        } else {
+            grade = i === 1 ? '1등급' : (i === 2 ? '2등급' : '등외');
+            detailName = `한돈 암퇘지 ${cat}`;
+        }
+
         items.push({
           id: String(idCounter++),
           species,
           storageType,
           category: cat,
-          detailName: species === 'BEEF' ? `한우 암소 ${cat} ${i}등급` : `한돈 암퇘지 ${cat} 스펙${i}`,
+          detailName,
+          displayName: cat, // 표시용으로는 부위명(cat)만 사용
+          grade,
           price,
           changeValue: change,
           status,

@@ -7,20 +7,23 @@ interface Props {
 
 export function FavoritePriceList({ items }: Props) {
   if (items.length === 0) {
-    return (
-      <div className="py-12 flex flex-col items-center justify-center text-center bg-[var(--color-surface-soft)] rounded-[var(--radius-xl)] border border-[var(--color-divider)]">
-        <span className="text-4xl mb-3" aria-hidden="true">⭐</span>
-        <h3 className="text-title text-[var(--text-strong)] font-bold mb-1">관심 부위가 없어요</h3>
-        <p className="text-body text-[var(--text-muted)]">자주 찾는 부위를 추가해 보세요</p>
-      </div>
-    );
+    return null; // 빈 화면 표시는 상위 컴포넌트(MainPage)에서 EmptyState로 처리합니다.
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {items.map(item => (
-        <PriceCard key={item.id} item={item} />
-      ))}
+    <div className="flex flex-col">
+      {/* Sticky List Header */}
+      <div className="sticky top-0 bg-[var(--color-bg)] z-40 py-3 mb-2 flex justify-between items-center text-label text-[var(--text-muted)] font-bold border-b border-[var(--color-divider)]">
+        <span>종류</span>
+        <span>등급</span>
+      </div>
+      
+      {/* List Items */}
+      <div className="flex flex-col gap-4">
+        {items.map(item => (
+          <PriceCard key={item.id} item={item} />
+        ))}
+      </div>
     </div>
   );
 }

@@ -13,6 +13,8 @@ export interface PriceItem {
   storageType: 'CHILLED' | 'FROZEN';
   category: string;
   detailName: string;
+  displayName?: string; // 추가됨: 화면 표시용 이름
+  grade?: string; // 추가됨: 등급 정보
   price: number;
   changeValue: number;
   status: TrendStatus;
@@ -26,4 +28,5 @@ export interface MarketServiceConfig {
   page?: number;
   limit?: number;
   storageType?: 'CHILLED' | 'FROZEN';
+  animalType?: 'BEEF' | 'PORK'; // 추가됨: 축종 필터링
 }
