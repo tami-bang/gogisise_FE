@@ -111,4 +111,23 @@
     font-size: var(--text-caption);
     font-weight: var(--font-weight-caption);
   }
+
+  /* Custom Scrollbar for Main Content Area */
+  main::-webkit-scrollbar {
+    width: 5px;
+  }
+  main::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  main::-webkit-scrollbar-thumb {
+    background-color: rgba(59, 145, 200, 0.4);
+    border-radius: 999px;
+  }
+  main::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(59, 145, 200, 0.6);
+  }
+  main {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(59, 145, 200, 0.4) transparent;
+  }
 }

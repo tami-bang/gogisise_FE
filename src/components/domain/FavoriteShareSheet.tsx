@@ -56,13 +56,7 @@ export function FavoriteShareSheet({ isOpen, isSharing, onClose, onConfirm }: Pr
         <div className="mb-8 text-center">
           <h2 id="share-sheet-title" className="text-title-xl font-bold text-[var(--text-strong)] mb-2">즐겨찾기 시세 공유</h2>
           <p className="text-body text-[var(--text-muted)]">
-            한우·한돈의 냉장·냉동 즐겨찾기 시세를 모두 공유합니다.
-          </p>
-        </div>
-        
-        <div className="bg-[var(--color-surface-soft)] rounded-[var(--radius-lg)] p-4 mb-8 text-center">
-          <p className="text-body-lg font-bold text-[var(--text-strong)]">
-            한우 냉장 · 한우 냉동 · 한돈 냉장 · 한돈 냉동
+            즐겨찾기에 등록한 모든 시세를 카카오톡으로 공유합니다.
           </p>
         </div>
 

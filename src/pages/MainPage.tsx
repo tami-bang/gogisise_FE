@@ -254,9 +254,9 @@ export function MainPage() {
         onBack={appStep === 'list' ? handleBack : undefined}
       />
       
-      <main ref={mainRef} className="flex-1 overflow-y-auto pt-[72px] pb-[96px] bg-[var(--color-bg)]">
+      <main ref={mainRef} className="flex flex-col flex-1 min-h-0 overflow-y-auto pt-[72px] pb-[96px] bg-[var(--color-bg)]">
         {summaryStatus === 'error' && (
-          <div className="px-5 pt-6">
+          <div className="px-5 pt-6 flex-shrink-0">
             <InlineError 
               message="오늘의 시세 요약을 불러오지 못했어요" 
               onRetry={loadInitialData} 
@@ -265,7 +265,9 @@ export function MainPage() {
         )}
         
         {appStep === 'select' && (
-          <AnimalSelect onSelect={handleAnimalSelect} />
+          <div className="flex-1 min-h-full">
+            <AnimalSelect onSelect={handleAnimalSelect} />
+          </div>
         )}
 
         {appStep === 'list' && (
@@ -297,7 +299,7 @@ export function MainPage() {
               <div ref={listTopRef} className="scroll-mt-[88px]" />
               <div className="flex bg-[var(--color-surface-soft)] rounded-[var(--radius-lg)] p-1 mb-6 gap-1">
                 <button
-                  className={`flex-1 py-3 text-label rounded-[var(--radius-md)] transition-colors ${
+                  className={`flex-1 py-3 text-center text-label rounded-[var(--radius-md)] transition-colors ${
                     storageType === 'CHILLED' ? selectableStateClass.active : selectableStateClass.inactive
                   }`}
                   aria-pressed={storageType === 'CHILLED'}
@@ -307,7 +309,7 @@ export function MainPage() {
                   냉장
                 </button>
                 <button
-                  className={`flex-1 py-3 text-label rounded-[var(--radius-md)] transition-colors ${
+                  className={`flex-1 py-3 text-center text-label rounded-[var(--radius-md)] transition-colors ${
                     storageType === 'FROZEN' ? selectableStateClass.active : selectableStateClass.inactive
                   }`}
                   aria-pressed={storageType === 'FROZEN'}
