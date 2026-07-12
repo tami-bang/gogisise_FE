@@ -1,32 +1,54 @@
-# React + TypeScript + Vite
+# 🥩 고기시세 (정육점 사장님을 위한 맞춤 시세 조회 앱)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+> 복잡한 조건 선택과 작은 글씨로 매일 아침 시세 확인에 스트레스를 받는 60대 안팎의 정육점 사장님들을 위한 **초간단 & 큰 글씨 고기 시세 자동 조회 서비스**입니다.
 
-Currently, two official plugins are available:
+## 📌 주요 특징 (Key Features)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **제로 터치 UX 기반 즐겨찾기**: 처음 한 번만 관심 품목을 등록해 두면, 다음부터 앱을 켜자마자 복잡한 필터 조작 없이 바로 시세를 확인할 수 있습니다.
+- **큰 글씨 & 직관적인 UI (모바일 퍼스트)**: 노안이 있으신 사장님들도 돋보기 없이 바로 읽을 수 있는 특대형 폰트와 직관적인 색상(상승 🔴 / 하락 🔵)을 사용했습니다.
+- **냉장 / 냉동 탭 및 페이지네이션**: 한우/한돈 각각의 시세를 냉장과 냉동으로 분리하여 탭 한 번으로 쾌적하게(무한 스크롤/페이지네이션) 확인할 수 있습니다.
+- **간편한 카카오톡 공유**: 확인한 오늘자 꿀 시세를 단골 거래처나 직원들에게 즉시 공유할 수 있는 카톡 연동 기능을 제공합니다.
 
-## React Compiler
+## 🛠 기술 스택 (Tech Stack)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **프론트엔드**: React, TypeScript, Vite
+- **디자인/스타일**: Vanilla CSS (CSS Variables 기반 디자인 시스템 적용)
+- **아키텍처**: 클린 아키텍처 기반의 모듈식 폴더 구조 (`ui`, `api`, `domain` 분리)
 
-## Expanding the Oxlint configuration
+## 📁 프로젝트 주요 구조
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```
+src/
+ ├── api/           # 모의 데이터(Mock) 및 통신 로직 (시장 시세 패칭)
+ ├── components/    # 화면 구성을 위한 공통/도메인 컴포넌트 모음
+ ├── pages/         # 앱의 메인 컨테이너 화면 (MainPage, 온보딩 등)
+ ├── utils/         # 가격 포맷팅 등 전역 헬퍼 함수
+ ├── index.css      # 전역 변수(컬러, 타이포그래피) 및 앱 스타일링
+ └── App.tsx        # 최상위 라우터 및 상태 관리
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## 🚀 로컬 실행 방법 (How to Run)
+
+1. 저장소 클론 및 패키지 설치
+```bash
+git clone git@github.com:tami-bang/gogisise_FE.git
+cd gogisise_FE
+npm install
+```
+
+2. 개발 서버 실행
+```bash
+npm run dev
+```
+
+3. 빌드 (Production)
+```bash
+npm run build
+```
+
+## 📜 기획 및 설계 문서 (Documents)
+
+프로젝트에 대한 더 상세한 기획 배경, 컴포넌트 설계 명세서는 아래 문서들을 참고해 주세요.
+- **PRD (요구사항 정의)**: `docs/bible/PRD.md`
+- **카테고리 스펙**: `docs/bible/CATEGORIES.md`
+- **디자인 컴포넌트 명세**: `docs/design/` 내 각종 마크다운 참조
