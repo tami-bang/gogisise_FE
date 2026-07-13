@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 
 export interface FavoriteItem {
-  id: string;
+  itemId: string;
   animalType: 'BEEF' | 'PORK';
   storageType: 'CHILLED' | 'FROZEN';
   addedAt: string;
@@ -34,9 +34,9 @@ export const useFavorites = () => {
         const migrated: FavoriteItem[] = [];
 
         // v2 포맷으로 재저장 (일단 기본값으로 넣고 자세한건 백그라운드나 나중에 처리)
-        for (const id of parsed) {
+        for (const itemId of parsed) {
           migrated.push({
-            id,
+            itemId,
             animalType: 'BEEF', // 임시 기본값
             storageType: 'CHILLED', // 임시 기본값
             addedAt: new Date().toISOString(),
@@ -64,15 +64,15 @@ export const useFavorites = () => {
   });
 
   const isFavorite = useCallback(
-    (id: string) => {
-      return favorites.some((fav) => fav.id === id);
+    (itemId: string) => {
+      return favorites.some((fav) => fav.itemId === itemId);
     },
     [favorites]
   );
 
   const addFavorite = useCallback((item: Omit<FavoriteItem, 'addedAt'>) => {
     setFavorites((prev) => {
-      if (prev.some(f => f.id === item.id)) return prev;
+      if (prev.some(f => f.itemId === item.itemId)) return prev;
       
       const nextFavorites = [...prev, { ...item, addedAt: new Date().toISOString() }];
       const storageData: FavoriteStorage = { version: 2, items: nextFavorites };
@@ -85,9 +85,9 @@ export const useFavorites = () => {
     });
   }, []);
 
-  const removeFavorite = useCallback((id: string) => {
+  const removeFavorite = useCallback((itemId: string) => {
     setFavorites((prev) => {
-      const nextFavorites = prev.filter((fav) => fav.id !== id);
+      const nextFavorites = prev.filter((fav) => fav.itemId !== itemId);
       const storageData: FavoriteStorage = { version: 2, items: nextFavorites };
       try {
         localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(storageData));

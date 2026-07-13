@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback, useLayoutEffect, useMemo } fr
 import { useNavigate } from 'react-router-dom';
 import type { MarketSummary, PriceItem } from '../api';
 import { marketService } from '../api';
-import { Layout } from '../components/common/Layout';
+import { PageLayout } from '../components/common/PageLayout';
 import { Header } from '../components/common/Header';
 import { Footer } from '../components/common/Footer';
 import { LoadingScreen } from '../components/common/LoadingScreen';
@@ -18,7 +18,7 @@ import { FavoritePriceList } from '../components/domain/FavoritePriceList';
 import { KakaoShareButton } from '../components/domain/KakaoShareButton';
 import { FavoriteShareSheet } from '../components/domain/FavoriteShareSheet';
 import { PriceDetailSheet } from '../components/domain/price-detail/PriceDetailSheet';
-import { selectableStateClass } from '../utils/styles';
+
 import { useFavorites } from '../hooks/useFavorites';
 
 type AsyncStatus = 'idle' | 'loading' | 'success' | 'empty' | 'error';
@@ -131,12 +131,12 @@ export function MainPage() {
       try {
         const startIndex = (page - 1) * ITEMS_PER_PAGE;
         const pageFavorites = filteredFavorites.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-        const idsToFetch = pageFavorites.map(f => f.id);
+        const idsToFetch = pageFavorites.map(f => f.itemId);
         
         const response = await marketService.getFavoritePrices(idsToFetch);
         
-        // 정렬 순서를 유지하기 위해 ID 순서대로 매핑
-        const sortedResponse = idsToFetch.map(id => response.find(r => r.id === id)).filter(Boolean) as PriceItem[];
+        // 정렬 순서를 유지하기 위해 itemId 순서대로 매핑 (명세: itemId 기준 식별자)
+        const sortedResponse = idsToFetch.map(id => response.find(r => r.itemId === id)).filter(Boolean) as PriceItem[];
         
         setItems(sortedResponse);
         setListStatus('success');
@@ -252,7 +252,7 @@ export function MainPage() {
   const rightAction = appStep === 'select' ? null : 'share';
 
   return (
-    <Layout>
+    <PageLayout>
       <Header 
         title={headerTitle} 
         rightAction={rightAction}
@@ -260,15 +260,15 @@ export function MainPage() {
         onBack={appStep === 'list' ? handleBack : undefined}
       />
       
-      <main ref={mainRef} className="flex flex-col flex-1 min-h-0 overflow-y-auto pt-[72px] pb-[96px] bg-[var(--color-bg)]">
+      <main ref={mainRef} className="w-full flex flex-col flex-1 pb-4">
         {summaryStatus === 'error' && (
-          <div className="px-5 pt-6 flex-shrink-0">
+          <div className="w-full pt-6 flex-shrink-0">
             <InlineError message="오늘의 시세 요약을 불러오지 못했어요" onRetry={loadInitialData} />
           </div>
         )}
         
         {appStep === 'select' && (
-          <div className="flex-1 min-h-full">
+          <div className="w-full flex-1">
             <AnimalSelect onSelect={handleAnimalSelect} />
           </div>
         )}
@@ -298,12 +298,14 @@ export function MainPage() {
               </div>
             )}
             
-            <section className="px-5 pb-6">
+            <section className="w-full pb-6">
               <div ref={listTopRef} className="scroll-mt-[88px]" />
               <div className="flex bg-[var(--color-surface-soft)] rounded-[var(--radius-lg)] p-1 mb-6 gap-1">
                 <button
                   className={`flex-1 py-3 text-center text-label rounded-[var(--radius-md)] transition-colors ${
-                    storageType === 'CHILLED' ? selectableStateClass.active : selectableStateClass.inactive
+                    storageType === 'CHILLED' 
+                      ? 'border-2 border-[var(--color-secondary)] bg-[var(--color-surface)] text-[var(--text-strong)]' 
+                      : 'bg-[var(--color-surface-soft)] border border-[var(--color-border)] text-[var(--text-muted)]'
                   }`}
                   aria-pressed={storageType === 'CHILLED'}
                   onClick={() => handleStorageChange('CHILLED')}
@@ -313,7 +315,9 @@ export function MainPage() {
                 </button>
                 <button
                   className={`flex-1 py-3 text-center text-label rounded-[var(--radius-md)] transition-colors ${
-                    storageType === 'FROZEN' ? selectableStateClass.active : selectableStateClass.inactive
+                    storageType === 'FROZEN' 
+                      ? 'border-2 border-[var(--color-secondary)] bg-[var(--color-surface)] text-[var(--text-strong)]' 
+                      : 'bg-[var(--color-surface-soft)] border border-[var(--color-border)] text-[var(--text-muted)]'
                   }`}
                   aria-pressed={storageType === 'FROZEN'}
                   onClick={() => handleStorageChange('FROZEN')}
@@ -387,6 +391,6 @@ export function MainPage() {
         message={toastMessage} 
         onClose={() => setIsToastVisible(false)} 
       />
-    </Layout>
+    </PageLayout>
   );
 }

@@ -74,7 +74,7 @@ export function PriceDetailSheet({
   const handleConfirmAction = () => {
     if (confirmState === 'adding' && detail) {
       addFavorite({
-        id: detail.itemId,
+        itemId: detail.itemId,
         animalType: detail.animalType,
         storageType: detail.storageType,
       });
@@ -148,15 +148,15 @@ export function PriceDetailSheet({
 
             {status === 'success' && detail && (
               <>
-                <DetailHeader fullDisplayName={detail.fullDisplayName} />
+                <DetailHeader fullDisplayName={detail.displayName} />  {/* fullDisplayName → displayName */}
                 <PriceSummaryCard 
                   averagePrice={detail.averagePrice}
-                  changeAmount={detail.changeAmount}
-                  status={detail.status}
-                  minPrice={detail.minPrice}
-                  maxPrice={detail.maxPrice}
-                  includedCount={detail.includedCount}
-                  sourceRecordCount={detail.sourceRecordCount}
+                  changeAmount={detail.changeAmount}          /* Nullable 허용 */
+                  trendStatus={detail.trendStatus}             /* 명세: trendStatus (UP/DOWN/UNCHANGED) */
+                  lowestPrice={detail.lowestPrice}             /* 명세: lowestPrice */
+                  highestPrice={detail.highestPrice}           /* 명수: highestPrice */
+                  participantCount={detail.participantCount}   /* 명세: participantCount */
+                  sourceRecordCount={detail.sourceRecords.length}
                   unit={detail.unit}
                 />
                 <SourceList records={detail.sourceRecords} />
@@ -189,7 +189,7 @@ export function PriceDetailSheet({
       <ConfirmDialog
         isOpen={confirmState !== 'idle'}
         title={confirmState === 'adding' ? '즐겨찾기에 추가' : '즐겨찾기에서 삭제'}
-        message={`해당 ${detail?.fullDisplayName || '품목'}을 즐겨찾기에서 ${confirmState === 'adding' ? '추가' : '삭제'}하시겠습니까?`}
+        message={`해당 ${detail?.displayName || '품목'}을 즐겨찾기에서 ${confirmState === 'adding' ? '추가' : '삭제'}하시겠습니까?`}
         confirmText="예"
         cancelText="아니오"
         isDestructive={confirmState === 'removing'}

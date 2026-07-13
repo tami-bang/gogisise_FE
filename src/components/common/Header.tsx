@@ -11,13 +11,13 @@ export function Header({ title = '고기시세', rightAction = null, onActionCli
     <header className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50 flex items-center justify-between h-[72px] px-5 bg-[var(--color-surface)] border-b border-[var(--color-divider)]">
       <div className="flex items-center gap-2">
         {onBack && (
-          <button 
+          <button
             onClick={onBack}
             className="p-2 -ml-2 active:scale-95 transition-transform"
             aria-label="뒤로가기"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
         )}
@@ -26,9 +26,9 @@ export function Header({ title = '고기시세', rightAction = null, onActionCli
           {title}
         </h1>
       </div>
-      
+
       {rightAction === 'share' && (
-        <button 
+        <button
           onClick={onActionClick}
           className="text-body text-[var(--color-primary)] font-bold p-2 -mr-2 active:scale-95 transition-transform"
           aria-label="공유하기"

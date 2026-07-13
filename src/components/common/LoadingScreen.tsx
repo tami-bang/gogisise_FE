@@ -4,7 +4,7 @@ export function LoadingScreen() {
       <div className="flex flex-col items-center gap-4">
         {/* 앱 로고 (이모지로 임시 대체) */}
         <span className="text-6xl animate-bounce" aria-hidden="true">🥩</span>
-        
+
         {/* 로딩 인디케이터 텍스트 */}
         <div className="flex items-center gap-2 text-[var(--color-primary)] text-title-xl font-bold">
           <svg className="animate-spin h-6 w-6 text-[var(--color-primary)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

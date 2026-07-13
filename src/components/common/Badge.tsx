@@ -1,7 +1,7 @@
 import { getTrendIcon, getTrendColorClass, formatPrice } from '../../utils/formatter';
 
 interface Props {
-  status: 'RISE' | 'FALL' | 'SAME';
+  status: 'UP' | 'DOWN' | 'UNCHANGED';  // 명세: UP/DOWN/UNCHANGED (이전: RISE/FALL/SAME)
   value?: number;
   label?: string;
   size?: 'sm' | 'md';

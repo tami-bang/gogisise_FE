@@ -2,36 +2,26 @@ export const formatPrice = (value: number): string => {
   return new Intl.NumberFormat('ko-KR').format(value);
 };
 
-export const getTrendIcon = (status: 'RISE' | 'FALL' | 'SAME') => {
+export const getTrendIcon = (status: 'UP' | 'DOWN' | 'UNCHANGED') => {
   switch (status) {
-    case 'RISE':
-      return '▲';
-    case 'FALL':
-      return '▼';
-    default:
-      return '—';
+    case 'UP':   return '▲';  // 명세: UP (이전: RISE)
+    case 'DOWN': return '▼';  // 명세: DOWN (이전: FALL)
+    default:     return '—';  // UNCHANGED
   }
 };
 
-export const getTrendColorClass = (status: 'RISE' | 'FALL' | 'SAME', type: 'text' | 'bg' = 'text') => {
+export const getTrendColorClass = (status: 'UP' | 'DOWN' | 'UNCHANGED', type: 'text' | 'bg' = 'text') => {
   if (type === 'text') {
     switch (status) {
-      case 'RISE':
-        return 'text-[var(--color-text-red)]';
-      case 'FALL':
-        return 'text-[var(--color-secondary)]';
-      default:
-        return 'text-[var(--text-muted)]';
+      case 'UP':   return 'text-[var(--color-text-red)]';   // 상승: 빨간
+      case 'DOWN': return 'text-[var(--color-secondary)]';  // 하락: 파란
+      default:     return 'text-[var(--text-muted)]';       // 보합
     }
   } else {
-    // badge background colors
     switch (status) {
-      case 'RISE':
-        return 'bg-[#ffedea]';
-      case 'FALL':
-        return 'bg-[#edf6fc]';
-      default:
-        return 'bg-[var(--color-surface-soft)]';
+      case 'UP':   return 'bg-[#ffedea]';
+      case 'DOWN': return 'bg-[#edf6fc]';
+      default:     return 'bg-[var(--color-surface-soft)]';
     }
   }
 };

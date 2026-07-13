@@ -1,4 +1,3 @@
-import { selectableStateClass } from '../../utils/styles';
 
 interface Option {
   label: string;
@@ -20,7 +19,9 @@ export function SegmentedControl({ options, selectedValue, onChange }: Segmented
           <button
             key={opt.value}
             className={`flex-1 py-3 text-center text-label rounded-[var(--radius-md)] transition-colors ${
-              isSelected ? selectableStateClass.active : selectableStateClass.inactive
+              isSelected 
+                ? 'border-2 border-[var(--color-secondary)] bg-[var(--color-surface)] text-[var(--text-strong)]' 
+                : 'bg-[var(--color-surface-soft)] border border-[var(--color-border)] text-[var(--text-muted)]'
             }`}
             aria-pressed={isSelected}
             onClick={() => onChange(opt.value)}

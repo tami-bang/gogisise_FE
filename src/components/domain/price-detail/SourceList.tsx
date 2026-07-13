@@ -36,7 +36,7 @@ export function SourceList({ records }: SourceListProps) {
               <span className={`text-body font-bold ${!record.includedInAverage ? 'text-[var(--text-muted)]' : 'text-[var(--text-strong)]'}`}>
                 {record.price.toLocaleString()}원
               </span>
-              <span className="text-caption text-[var(--text-light)]">/ {record.unit}</span>
+              <span className="text-caption text-[var(--text-light)]">/ 1kg</span>  {/* 명세: SourcePriceRecord에 unit 필드 없음 */}
             </div>
           </div>
         ))}

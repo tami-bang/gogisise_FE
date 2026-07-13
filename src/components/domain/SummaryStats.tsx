@@ -1,7 +1,7 @@
 import type { MarketSummary } from '../../api';
 import { getTrendIcon, getTrendColorClass, formatPrice } from '../../utils/formatter';
 import { Badge } from '../common/Badge';
-import { selectableStateClass } from '../../utils/styles';
+
 
 interface Props {
   summary: MarketSummary;
@@ -11,7 +11,7 @@ interface Props {
 
 export function SummaryStats({ summary, onClickCard, activeAnimal = null }: Props) {
   return (
-    <section className="px-5 pt-6 pb-6">
+    <section className="w-full pt-6 pb-6">
       <div className="flex flex-wrap items-center justify-start text-left w-full gap-4 mb-8">
         <h2 className="text-title text-[var(--text-strong)] tracking-tight font-bold">오늘의 시세 요약</h2>
         <Badge status={summary.trendStatus} label={summary.trendMessage} />
@@ -25,7 +25,9 @@ export function SummaryStats({ summary, onClickCard, activeAnimal = null }: Prop
           aria-pressed={activeAnimal === 'BEEF'}
           aria-label="한우 시세 요약"
           className={`flex flex-col items-center text-center px-4 pt-10 pb-6 rounded-[var(--radius-xl)] shadow-soft hover:shadow-medium active:shadow-sm transition-all duration-150 cursor-pointer ${
-            activeAnimal === 'BEEF' ? selectableStateClass.active : selectableStateClass.inactive
+            activeAnimal === 'BEEF' 
+              ? 'border-2 border-[var(--color-secondary)] bg-[var(--color-surface)] text-[var(--text-strong)]' 
+              : 'bg-[var(--color-surface-soft)] border border-[var(--color-border)] text-[var(--text-muted)]'
           } ${onClickCard ? 'active:scale-[0.98]' : 'cursor-default'}`}
         >
           <div className="flex flex-col items-center gap-6 mb-8 w-full">
@@ -47,7 +49,9 @@ export function SummaryStats({ summary, onClickCard, activeAnimal = null }: Prop
           aria-pressed={activeAnimal === 'PORK'}
           aria-label="한돈 시세 요약"
           className={`flex flex-col items-center text-center px-4 pt-10 pb-6 rounded-[var(--radius-xl)] shadow-soft hover:shadow-medium active:shadow-sm transition-all duration-150 cursor-pointer ${
-            activeAnimal === 'PORK' ? selectableStateClass.active : selectableStateClass.inactive
+            activeAnimal === 'PORK' 
+              ? 'border-2 border-[var(--color-secondary)] bg-[var(--color-surface)] text-[var(--text-strong)]' 
+              : 'bg-[var(--color-surface-soft)] border border-[var(--color-border)] text-[var(--text-muted)]'
           } ${onClickCard ? 'active:scale-[0.98]' : 'cursor-default'}`}
         >
           <div className="flex flex-col items-center gap-6 mb-8 w-full">

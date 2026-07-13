@@ -11,7 +11,7 @@ export function FontSizeSelector() {
   ];
 
   return (
-    <div className="flex flex-col gap-[var(--spacing-16)] py-[var(--spacing-20)] px-[var(--spacing-20)] bg-[var(--color-surface)] border-b border-[var(--color-divider)]">
+    <div className="w-full flex flex-col gap-[var(--spacing-16)] py-[var(--spacing-20)]">
       <div className="flex flex-col gap-[var(--spacing-8)]">
         <h3 className="text-title font-bold text-[var(--text-strong)]">화면 글자 크기</h3>
         <p className="text-body text-[var(--text-muted)]">

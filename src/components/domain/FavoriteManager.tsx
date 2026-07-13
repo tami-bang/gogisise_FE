@@ -21,7 +21,7 @@ export function FavoriteManager() {
     const fetchFavs = async () => {
       setLoading(true);
       try {
-        const result = await marketService.getFavoritePrices(favorites.map(f => f.id));
+        const result = await marketService.getFavoritePrices(favorites.map(f => f.itemId));
         if (isMounted) setItems(result);
       } catch (e) {
         console.error(e);
@@ -43,8 +43,8 @@ export function FavoriteManager() {
   };
 
   return (
-    <div className="flex flex-col bg-[var(--color-surface)] h-full">
-      <div className="flex justify-between items-end px-[var(--spacing-20)] py-[var(--spacing-16)] border-b border-[var(--color-divider)]">
+    <div className="w-full flex flex-col h-full">
+      <div className="flex justify-between items-end pt-[var(--spacing-8)] pb-[var(--spacing-16)]">
         <div className="flex flex-col gap-[var(--spacing-4)]">
           <h3 className="text-title font-bold text-[var(--text-strong)]">즐겨찾기 관리</h3>
           <span className="text-body text-[var(--text-muted)]">총 {favorites.length}개</span>
@@ -59,7 +59,7 @@ export function FavoriteManager() {
         )}
       </div>
 
-      <div className="flex-1 px-[var(--spacing-20)] py-[var(--spacing-16)] overflow-y-auto">
+      <div className="flex-1 py-[var(--spacing-16)] overflow-y-auto">
         {loading ? (
           <ListSkeleton count={3} />
         ) : items.length === 0 ? (
@@ -71,10 +71,10 @@ export function FavoriteManager() {
           <div className="flex flex-col gap-[var(--spacing-12)]">
             {items.map(item => (
               <PriceCard 
-                key={item.id} 
+                key={item.itemId}
                 item={item} 
                 onClick={handleItemClick} 
-                id={`fav-manage-card-${item.id}`}
+                id={`fav-manage-card-${item.itemId}`}
               />
             ))}
           </div>

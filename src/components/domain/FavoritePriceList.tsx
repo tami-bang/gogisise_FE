@@ -27,10 +27,10 @@ export function FavoritePriceList({ items, onItemClick }: Props) {
       <div className="flex flex-col gap-4">
         {items.map(item => (
           <PriceCard 
-            key={item.id} 
+            key={item.itemId}
             item={item} 
             onClick={onItemClick}
-            id={`main-price-card-${item.id}`} 
+            id={`main-price-card-${item.itemId}`} 
           />
         ))}
       </div>
