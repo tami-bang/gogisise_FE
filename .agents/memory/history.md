@@ -21,6 +21,12 @@
 - **버그 수정 (Bug Fixes)**
   - 한글 초성 검색 인덱싱 매칭(`koreanSearch.ts`) 관련 버그 해결.
   - 모달 및 바텀시트의 `z-index` 겹침 문제 및 화면 레이아웃 최적화 완료.
+  - 상태 불일치 버그 수정 (상단 카운트 및 시각적 목록 간 차이 해결).
+
+### 🔐 사용자 인증 아키텍처 설계 (User Authentication Architecture)
+- **인증 데이터 명세서 작성**
+  - `docs/data/USER_AUTH_SPEC.md` 생성 및 사용자 인증/인가 관련 데이터 흐름 정의.
+  - `USER_SERVED_SPEC.md`와 연계하여 서비스 제공 데이터와 인증 로직 정렬 설계.
 
 ## 2026-07-10
 
