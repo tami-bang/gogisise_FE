@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 
 export interface FavoriteItem {
   itemId: string;
@@ -14,8 +14,13 @@ export interface FavoriteStorage {
 
 const FAVORITES_STORAGE_KEY = 'gogisise:favorites';
 const FAVORITES_BACKUP_KEY = 'gogisise:favorites:backup';
+// 즐겨찾기 상태 동기화를 위한 커스텀 이벤트 이름 정의 (단건 삭제 시 다른 컴포넌트에도 알림)
+const FAVORITES_CHANGE_EVENT = 'gogisise:favorites_changed';
 
 export const useFavorites = () => {
+  // 현재 훅 인스턴스의 고유 ID 생성 (무한 루프/중복 업데이트 방지 표식)
+  const hookId = useMemo(() => Math.random().toString(36).substring(2, 9), []);
+
   const [favorites, setFavorites] = useState<FavoriteItem[]>(() => {
     try {
       const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
@@ -63,6 +68,34 @@ export const useFavorites = () => {
     return [];
   });
 
+  // 다른 컴포넌트(예: 모달)에서 즐겨찾기가 변경되었을 때 현재 컴포넌트의 상태도 동기화하는 역할
+  useEffect(() => {
+    const syncFavorites = (e: Event) => {
+      // 내가 발생시킨 이벤트라면 로컬 스토리지 중복 읽기 패스!
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail?.senderId === hookId) return;
+
+      try {
+        const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
+        if (!stored) {
+          setFavorites([]);
+          return;
+        }
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === 'object' && parsed.version === 2 && Array.isArray(parsed.items)) {
+          setFavorites(parsed.items as FavoriteItem[]);
+        }
+      } catch (e) {
+        console.error('Failed to sync favorites', e);
+      }
+    };
+
+    window.addEventListener(FAVORITES_CHANGE_EVENT, syncFavorites);
+    return () => {
+      window.removeEventListener(FAVORITES_CHANGE_EVENT, syncFavorites);
+    };
+  }, []);
+
   const isFavorite = useCallback(
     (itemId: string) => {
       return favorites.some((fav) => fav.itemId === itemId);
@@ -78,6 +111,7 @@ export const useFavorites = () => {
       const storageData: FavoriteStorage = { version: 2, items: nextFavorites };
       try {
         localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(storageData));
+        window.dispatchEvent(new CustomEvent(FAVORITES_CHANGE_EVENT, { detail: { senderId: hookId } }));
       } catch (e) {
         console.error('Failed to save favorite', e);
       }
@@ -91,6 +125,7 @@ export const useFavorites = () => {
       const storageData: FavoriteStorage = { version: 2, items: nextFavorites };
       try {
         localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(storageData));
+        window.dispatchEvent(new CustomEvent(FAVORITES_CHANGE_EVENT, { detail: { senderId: hookId } }));
       } catch (e) {
         console.error('Failed to save favorite', e);
       }
@@ -102,6 +137,7 @@ export const useFavorites = () => {
     setFavorites([]);
     try {
       localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify({ version: 2, items: [] }));
+      window.dispatchEvent(new CustomEvent(FAVORITES_CHANGE_EVENT, { detail: { senderId: hookId } }));
     } catch (e) {
       console.error('Failed to clear favorites', e);
     }

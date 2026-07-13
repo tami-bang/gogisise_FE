@@ -3,11 +3,24 @@ import { MainPage } from './pages/MainPage';
 import { AllPricesPage } from './pages/AllPricesPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { useSettings } from './hooks/useSettings';
+import { AuthProvider } from './contexts/AuthContext';
+import { useInitializeAuth } from './hooks/useInitializeAuth';
 import './index.css';
 
-function App() {
+function AppContent() {
   // 전역 설정 불러오기 (글자 크기 등)
   useSettings();
+  
+  // 보안: 앱 부트스트랩 시 Silent Refresh 수행 (토큰 무실점 복구)
+  const { isInitializing } = useInitializeAuth();
+
+  if (isInitializing) {
+    return (
+      <div className="min-h-[100dvh] flex items-center justify-center bg-[var(--color-bg)]">
+        <div className="text-[var(--color-primary)] font-bold text-title animate-pulse">앱 초기화 중...</div>
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
@@ -18,6 +31,14 @@ function App() {
         <Route path="/settings" element={<SettingsPage />} />
       </Routes>
     </BrowserRouter>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
