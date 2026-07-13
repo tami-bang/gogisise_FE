@@ -2,6 +2,20 @@
 
 ## 2026-07-13
 
+### 🔐 사용자 인증 아키텍처 및 UI 구현 (User Authentication)
+- **Zero Trust 및 클린 아키텍처 적용**
+  - E2EE(End-to-End Encryption) 대응 모킹 암호화 모듈(`crypto.ts`) 개발.
+  - UI 컴포넌트 내 직접적인 `fetch` 차단을 위해 `authService`, `authMock` 도입.
+  - 보안 강화를 위해 `accessToken`을 `localStorage`가 아닌 메모리(`AuthContext`)에만 격리 보관.
+- **Silent Refresh 및 부트스트랩 기능**
+  - 앱 렌더링 전 백엔드 리프레시를 모방한 `useInitializeAuth` 도입으로 토큰 무실점 복구 체계 마련.
+- **인증 폼 고도화 및 UX 맵핑**
+  - 로그인, 회원가입, 비밀번호 찾기(매직링크), 이메일 찾기 등 인증 바텀시트 폼(`AuthBottomSheet` 및 하위 폼) 구현 완성.
+  - 백엔드 에러 시스템 코드를 사용자 친화적인 한국어로 변환해주는 `errorDictionary` 연동.
+  - 로그인 5회 실패 시 폼 잠금(Brute Force 방어 로직) 등 보안/UI 개선 완료.
+- **유효성 검증(Validation)**
+  - 이메일, 닉네임, 폰번호, 비밀번호 복합 규칙 검증 유틸(`validation.ts`) 구현 및 실시간 검증 적용.
+
 ### 🛠️ 프로젝트 구조 개편 및 TypeScript 도입 (Architecture & Setup)
 - **TypeScript 환경 마이그레이션**
   - 기존 JavaScript 코드를 TypeScript(`*.tsx`, `*.ts`)로 변환 및 컴포넌트/API 모듈 계층 구조 개편 완료.

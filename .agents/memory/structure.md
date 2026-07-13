@@ -60,11 +60,15 @@
 ├── src                                    # 메인 소스 코드 디렉토리
 │   ├── api                                # API 연동 계층
 │   │   ├── mock                           # 모의 데이터
+│   │   │   ├── authMock.ts                # 인증 모의 데이터
+│   │   │   ├── kakaoAuthMock.ts           # 카카오 간편로그인 모의 데이터
 │   │   │   └── marketMock.ts              # 시세 모의 데이터
 │   │   ├── services                       # API 서비스
+│   │   │   ├── authService.ts             # 인증 API 서비스
 │   │   │   ├── marketService.ts           # 시장 데이터 서비스
 │   │   │   └── priceAggregationService.ts # 가격 집계 서비스
 │   │   ├── types                          # 타입 정의
+│   │   │   ├── auth.ts                    # 인증 데이터 타입
 │   │   │   └── market.ts                  # 시장 데이터 타입
 │   │   └── index.ts                       # API 엔트리
 │   ├── assets                             # 빌드용 내부 정적 자산
@@ -90,6 +94,12 @@
 │   │   │   ├── SegmentedControl.tsx       # 세그먼트 컨트롤 탭
 │   │   │   └── Toast.tsx                  # 토스트 알림
 │   │   └── domain                         # 도메인 특화 컴포넌트
+│   │       ├── auth                       # 사용자 인증 컴포넌트
+│   │       │   ├── AuthBottomSheet.tsx    # 인증 통합 바텀시트
+│   │       │   ├── FindEmailForm.tsx      # 이메일 찾기 폼
+│   │       │   ├── LoginForm.tsx          # 로그인 폼
+│   │       │   ├── MagicLinkForm.tsx      # 비밀번호 찾기 (매직링크) 폼
+│   │       │   └── SignupForm.tsx         # 회원가입 폼
 │   │       ├── price-detail               # 시세 상세 관련
 │   │       │   ├── DetailHeader.tsx       # 상세 화면 헤더
 │   │       │   ├── PriceDetailSheet.tsx   # 시세 상세 바텀시트
@@ -102,8 +112,12 @@
 │   │       ├── KakaoShareButton.tsx       # 카카오 공유 버튼
 │   │       ├── PriceCard.tsx              # 가격 카드
 │   │       └── SummaryStats.tsx           # 요약 통계
+│   ├── contexts                           # 전역 상태 컨텍스트 관리
+│   │   └── AuthContext.tsx                # 인증 정보 상태 관리
 │   ├── hooks                              # 커스텀 훅
+│   │   ├── useAuth.ts                     # 사용자 인증 로직 및 에러 매핑 훅
 │   │   ├── useFavorites.ts                # 즐겨찾기 훅
+│   │   ├── useInitializeAuth.ts           # 자동 인증 복구(Silent Refresh) 훅
 │   │   ├── usePriceDetail.ts              # 가격 상세 훅
 │   │   └── useSettings.ts                 # 설정 훅
 │   ├── pages                              # 라우팅 단위 화면 컨테이너
@@ -111,8 +125,11 @@
 │   │   ├── MainPage.tsx                   # 메인 대시보드
 │   │   └── SettingsPage.tsx               # 설정 페이지
 │   ├── utils                              # 유틸리티 함수
+│   │   ├── crypto.ts                      # 클라이언트 보안 암호화 유틸
+│   │   ├── errorDictionary.ts             # 백엔드 에러 한국어 매핑 딕셔너리
 │   │   ├── formatter.ts                   # 포맷팅 유틸
-│   │   └── koreanSearch.ts                # 한국어 초성 검색 유틸
+│   │   ├── koreanSearch.ts                # 한국어 초성 검색 유틸
+│   │   └── validation.ts                  # 폼 입력값 검증 유틸 (이메일, 비밀번호 등)
 │   ├── App.tsx                            # 최상위 라우팅 및 전역 상태 관리
 │   ├── index.css                          # 글로벌 스타일시트
 │   └── main.tsx                           # 앱 진입점
@@ -126,7 +143,7 @@
 ├── tsconfig.app.json                      # 타입스크립트 앱 설정
 ├── tsconfig.json                          # 타입스크립트 베이스 설정
 ├── tsconfig.node.json                     # Vite 노드 환경 설정
-└── vite.config.ts                         # Vite 빌드 설정
+└── vite.config.ts                         # Vite 빌드 설정 (보안/난독화 세팅)
 ```
 
 ## 🧠 주요 폴더 및 파일 설명 (비유: IT 회사의 조직 및 설계도)
@@ -137,17 +154,19 @@
    - 회사의 나아갈 방향과 규칙, 화면의 청사진을 보관하는 곳입니다.
    - **`bible/`**: 회사의 핵심 가치와 요구사항, 기술 스택을 명시하는 '헌법' 역할을 합니다.
    - **`design/`**: 디자이너와 기획자가 구상한 UI/UX 설계도면(컴포넌트 및 페이지 명세)들이 모여있습니다.
-   - **`data/`**: 최근 신설된 부서로, 데이터의 형태(`USER_AUTH_SPEC.md` 등)를 정의하고 체계화합니다.
+   - **`data/`**: 시스템 내 데이터 모델 및 규격을 정의하는 곳으로, 인증 절차(`USER_AUTH_SPEC.md`) 및 서빙 데이터를 체계화합니다.
 
 2. **`src/` (본사 작업 현장 - 엔지니어링 본부)**
-   - 회사의 실질적인 제품(프론트엔드 앱)을 만들어내는 주요 생산 공장입니다. TypeScript 기반으로 업그레이드되어 더욱 견고하게 운영됩니다.
-   - **`api/` (통신팀)**: 외부 데이터 소스와의 인터페이스를 담당하며, 모델(`types`), 모의 데이터(`mock`), 실제 요청(`services`)으로 세분화되어 전문적으로 일합니다.
-   - **`components/` (조립 공정)**: 공용 부품(`common`)과 도메인 특화 부품(`domain`)을 모듈화하여 조립 라인을 효율화합니다.
+   - 회사의 실질적인 제품(프론트엔드 앱)을 만들어내는 주요 생산 공장입니다. 엄격한 클린 아키텍처 규칙에 따라 작동합니다.
+   - **`api/` (통신팀)**: 외부 데이터 소스와의 인터페이스를 전담하며, 인증 처리(`authService`, `authMock`) 등 순수 데이터 통신 로직만을 캡슐화합니다.
+   - **`components/` (조립 공정)**: 화면을 구성하는 UI 요소들을 생산합니다. 공용 부품(`common`)과 특수 도메인 부품(`domain`)을 분리하며, 특히 `domain/auth` 구역은 보안 철칙에 따라 API 통신 기능을 배제한 순수 UI 조립만 진행합니다.
+   - **`contexts/` 및 `hooks/` (경영진 및 보안 요원)**: `AuthContext`는 사용자의 토큰을 디스크(localStorage)가 아닌 메모리 금고에만 안전하게 보관합니다. 커스텀 훅(`useAuth`, `useInitializeAuth`)은 조립 공정(UI)과 통신팀(API) 사이의 징검다리 역할을 하며, 에러를 번역하고 뒷단에서 은밀하게 토큰을 복구(Silent Refresh)합니다.
    - **`pages/` (최종 쇼룸)**: 만들어진 컴포넌트들을 모아 사용자에게 보여주는 실제 화면 단위의 결과물입니다.
-   - **`App.tsx` (총괄 매니저)**: 사용자가 어떤 화면으로 가야 할지 안내(라우팅)하고, 전체적인 흐름을 조율합니다.
+   - **`App.tsx` (총괄 매니저)**: 사용자가 어떤 화면으로 가야 할지 길을 안내(라우팅)하고, 앱 가동 시 보안 시스템(인증 초기화)을 가장 먼저 활성화시킵니다.
+   - **`utils/` (전문 도구실)**: 데이터 암호화(`crypto`), 외국어(서버 에러) 번역(`errorDictionary`), 안전 검사(`validation`) 등 특수 목적의 도구들이 모여있습니다.
 
 3. **`dist/` & `public/` (물류 창고 및 출하 센터)**
-   - 고객에게 최종적으로 전달될 정적 자산과 번들링된 완성품이 보관되고 출하되는 곳입니다. 최근 빌드가 추가되어 출하 대기 중인 패키지(`assets`)들이 확인됩니다.
+   - 고객에게 최종적으로 전달될 정적 자산과 번들링된 완성품이 출하를 대기하는 곳입니다. 소스맵(Sourcemap)이 제거되어 외부인이 회사의 설계 기밀을 훔쳐볼 수 없도록 철저히 통제됩니다.
 
 4. **`.agents/` (경영 지원 AI 로봇 - 영속적 기억 장치)**
    - 현재 디렉토리 트리에는 노출되지 않지만, 프로젝트의 흐름과 규칙을 관리하는 두뇌입니다.
