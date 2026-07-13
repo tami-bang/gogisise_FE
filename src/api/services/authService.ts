@@ -1,7 +1,7 @@
 // src/api/services/authService.ts
 
 import type { AuthResponseData } from '../types/auth';
-import { generateMockLoginSuccess, mockRefreshSuccess } from '../mock/authMock';
+import { generateMockLoginSuccess, mockRefreshSuccess, mockDatabase, type MockUser } from '../mock/authMock';
 import { cryptoService } from '../../utils/crypto';
 
 /**
@@ -18,40 +18,54 @@ export const authService = {
    * 로그인
    */
   login: async (email: string, password: string): Promise<AuthResponseData> => {
-    // E2EE 적용: 전송 전 페이로드 암호화 (실제로는 fetch body에 담아 보냅니다)
     const encryptedPassword = cryptoService.encryptPayload(password);
     console.debug('[AuthService] Login with encrypted payload:', encryptedPassword);
 
     await delay(800); // 통신 모의 지연
 
-    // 시뮬레이션: 고의 에러 발생 로직
-    if (email === 'error@test.com') {
-      throw { errorCode: 'USER_NOT_FOUND', message: 'Not found' };
-    }
-    if (password === 'wrong') {
-      throw { errorCode: 'LOGIN_FAILED', message: 'Wrong password' };
-    }
-    if (email === 'lock@test.com') {
-      throw { errorCode: 'TOO_MANY_REQUESTS', message: 'Account locked' };
+    const matchedUser = mockDatabase.find(u => u.email === email && u.password === encryptedPassword);
+    
+    if (!matchedUser) {
+      throw { errorCode: 'LOGIN_FAILED', message: '이메일 또는 비밀번호가 일치하지 않습니다.' };
     }
 
-    return generateMockLoginSuccess(email);
+    if (matchedUser.status === 'LOCKED') {
+      throw { errorCode: 'TOO_MANY_REQUESTS', message: '계정이 잠겼습니다.' };
+    }
+
+    const response = generateMockLoginSuccess(matchedUser);
+    localStorage.setItem('MOCK_COOKIE_FLAG', 'true');
+    return response;
   },
 
   /**
    * 회원가입
    */
-  signup: async (email: string, password: string): Promise<AuthResponseData> => {
+  signup: async (email: string, password: string, nickname: string, phone: string): Promise<AuthResponseData> => {
     const encryptedPassword = cryptoService.encryptPayload(password);
     console.debug('[AuthService] Signup with encrypted payload:', encryptedPassword);
 
     await delay(1000);
 
-    if (email === 'dup@test.com') {
-      throw { errorCode: 'DUPLICATE_EMAIL', message: 'Email already exists' };
+    const isDuplicate = mockDatabase.some(u => u.email === email);
+    if (isDuplicate) {
+      throw { errorCode: 'DUPLICATE_EMAIL', message: '이미 가입된 이메일입니다.' };
     }
 
-    return generateMockLoginSuccess(email);
+    const newUser: MockUser = {
+      userId: `usr_${Date.now()}`,
+      email,
+      nickname,
+      phone,
+      password: encryptedPassword,
+      status: 'ACTIVE'
+    };
+    
+    mockDatabase.push(newUser);
+
+    const response = generateMockLoginSuccess(newUser);
+    localStorage.setItem('MOCK_COOKIE_FLAG', 'true');
+    return response;
   },
 
   /**
@@ -60,11 +74,10 @@ export const authService = {
   refresh: async (): Promise<AuthResponseData> => {
     await delay(500);
 
-    // 모의: localStorage 등에 특정 플래그를 두어 리프레시 에러를 낼 수 있음
-    // const shouldFail = localStorage.getItem('mockRefreshFail') === 'true';
-    // if (shouldFail) {
-    //   throw { errorCode: 'AUTHENTICATION_REQUIRED', message: 'Refresh failed' };
-    // }
+    const hasCookie = localStorage.getItem('MOCK_COOKIE_FLAG') === 'true';
+    if (!hasCookie) {
+      throw { errorCode: 'AUTHENTICATION_REQUIRED', message: 'Refresh failed' };
+    }
 
     return mockRefreshSuccess;
   },
@@ -74,6 +87,7 @@ export const authService = {
    */
   logout: async (): Promise<void> => {
     await delay(300);
+    localStorage.removeItem('MOCK_COOKIE_FLAG');
     console.debug('[AuthService] Logout success');
   },
 

@@ -5,6 +5,8 @@ import { SettingsPage } from './pages/SettingsPage';
 import { useSettings } from './hooks/useSettings';
 import { AuthProvider } from './contexts/AuthContext';
 import { useInitializeAuth } from './hooks/useInitializeAuth';
+import { useAuth } from './hooks/useAuth';
+import { AuthBottomSheet } from './components/domain/auth/AuthBottomSheet';
 import './index.css';
 
 function AppContent() {
@@ -13,6 +15,7 @@ function AppContent() {
   
   // 보안: 앱 부트스트랩 시 Silent Refresh 수행 (토큰 무실점 복구)
   const { isInitializing } = useInitializeAuth();
+  const { isAuthSheetOpen, closeAuthSheet } = useAuth();
 
   if (isInitializing) {
     return (
@@ -30,6 +33,7 @@ function AppContent() {
         <Route path="/all-prices" element={<AllPricesPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Routes>
+      <AuthBottomSheet isOpen={isAuthSheetOpen} onClose={closeAuthSheet} />
     </BrowserRouter>
   );
 }

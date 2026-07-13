@@ -1,18 +1,27 @@
 // src/api/mock/authMock.ts
 
-import type { AuthResponseData } from '../types/auth';
+import type { AuthResponseData, User } from '../types/auth';
+
+// 내부 인증용 Mock 유저 인터페이스
+export interface MockUser extends User {
+  password?: string;
+}
+
+// In-Memory Database
+export let mockDatabase: MockUser[] = [];
 
 /**
  * 모의 로그인 응답 데이터 생성
  */
-export const generateMockLoginSuccess = (email: string): AuthResponseData => ({
-  accessToken: `mock_access_token_${Date.now()}_for_${email}`, // JWE mock
+export const generateMockLoginSuccess = (user: MockUser): AuthResponseData => ({
+  accessToken: `mock_access_token_${Date.now()}_for_${user.email}`, // JWE mock
   expiresIn: 3600,
   user: {
-    userId: `usr_${Date.now()}`,
-    email,
-    nickname: email.split('@')[0],
-    status: 'ACTIVE'
+    userId: user.userId,
+    email: user.email,
+    nickname: user.nickname,
+    phone: user.phone,
+    status: user.status
   }
 });
 

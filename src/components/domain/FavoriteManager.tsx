@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useFavorites } from '../../hooks/useFavorites';
+import { useAuth } from '../../hooks/useAuth';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { EmptyState } from '../common/EmptyState';
 import { marketService } from '../../api/services/marketService';
@@ -10,6 +11,7 @@ import { ListSkeleton } from '../common/ListSkeleton';
 
 export function FavoriteManager() {
   const { favorites, clearAllFavorites } = useFavorites();
+  const { isAuthenticated, openAuthSheet } = useAuth();
   const [items, setItems] = useState<PriceItem[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -18,10 +20,23 @@ export function FavoriteManager() {
 
   useEffect(() => {
     let isMounted = true;
+    
+    // Auth Guard 및 데이터 격리 규칙 적용
+    if (!isAuthenticated) {
+      if (isMounted) {
+        setItems([]);
+        setLoading(false);
+      }
+      return;
+    }
+
+    // 로그인된 유저: 기존 로컬 스토리지 무시, 철저하게 DB 기반 목록 로드 시뮬레이션
     const fetchFavs = async () => {
       setLoading(true);
       try {
-        const result = await marketService.getFavoritePrices(favorites.map(f => f.itemId));
+        // TODO: 실제 DB 기반 유저별 즐겨찾기 API 연동 필요 (USER_SERVED_SPEC 2.1)
+        // 가입 직후라면 빈 목록이므로 임시로 빈 배열을 반환합니다.
+        const result: PriceItem[] = []; 
         if (isMounted) setItems(result);
       } catch (e) {
         console.error(e);
@@ -31,7 +46,7 @@ export function FavoriteManager() {
     };
     fetchFavs();
     return () => { isMounted = false; };
-  }, [favorites]);
+  }, [isAuthenticated]);
 
   const handleClearAll = () => {
     clearAllFavorites();
@@ -47,9 +62,9 @@ export function FavoriteManager() {
       <div className="flex justify-between items-end pt-[var(--spacing-8)] pb-[var(--spacing-16)]">
         <div className="flex flex-col gap-[var(--spacing-4)]">
           <h3 className="text-title font-bold text-[var(--text-strong)]">즐겨찾기 관리</h3>
-          <span className="text-body text-[var(--text-muted)]">총 {favorites.length}개</span>
+          <span className="text-body text-[var(--text-muted)]">총 {isAuthenticated ? items.length : 0}개</span>
         </div>
-        {favorites.length > 0 && (
+        {isAuthenticated && items.length > 0 && (
           <button 
             onClick={() => setShowClearConfirm(true)}
             className="text-label font-bold text-[var(--color-error)] active:opacity-70 transition-opacity"
@@ -60,7 +75,20 @@ export function FavoriteManager() {
       </div>
 
       <div className="flex-1 py-[var(--spacing-16)] overflow-y-auto">
-        {loading ? (
+        {!isAuthenticated ? (
+          <div className="h-full flex flex-col items-center justify-center gap-[var(--spacing-16)]">
+            <EmptyState 
+              title="로그인이 필요한 서비스입니다." 
+              description="즐겨찾기를 이용하시려면 로그인을 진행해 주세요." 
+            />
+            <button
+              onClick={openAuthSheet}
+              className="px-6 py-3 bg-[var(--color-primary)] text-white font-bold rounded-[var(--radius-xl)] active:scale-95 transition-transform"
+            >
+              3초만에 로그인하기
+            </button>
+          </div>
+        ) : loading ? (
           <ListSkeleton count={3} />
         ) : items.length === 0 ? (
           <EmptyState 

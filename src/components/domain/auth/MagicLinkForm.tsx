@@ -58,7 +58,7 @@ export function MagicLinkForm({ onSwitchToLogin }: Props) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={isLoading}
-          className="h-14 px-4 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] focus:border-[var(--color-secondary)] focus:outline-none transition-colors"
+          className="h-14 px-4 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] focus:border-[var(--color-primary)] focus:outline-none transition-colors"
           placeholder="example@email.com"
         />
       </div>

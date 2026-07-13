@@ -4,6 +4,7 @@ export interface User {
   userId: string;
   email: string;
   nickname: string;
+  phone?: string;
   status: 'ACTIVE' | 'LOCKED' | 'BANNED';
 }
 

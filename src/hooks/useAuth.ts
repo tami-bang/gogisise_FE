@@ -15,7 +15,7 @@ interface AuthError {
  * 에러 매핑(UX First)과 상태 관리를 담당합니다.
  */
 export function useAuth() {
-  const { setAuth, clearAuth } = useAuthContext();
+  const { user, isAuthSheetOpen, openAuthSheet, closeAuthSheet, setAuth, clearAuth } = useAuthContext();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<AuthError | null>(null);
 
@@ -46,8 +46,8 @@ export function useAuth() {
     return false;
   };
 
-  const signup = async (email: string, password: string): Promise<boolean> => {
-    const data = await handleApiCall(() => authService.signup(email, password));
+  const signup = async (email: string, password: string, nickname: string, phone: string): Promise<boolean> => {
+    const data = await handleApiCall(() => authService.signup(email, password, nickname, phone));
     if (data) {
       setAuth(data.accessToken, data.user || null);
       return true;
@@ -70,6 +70,11 @@ export function useAuth() {
   };
 
   return {
+    user,
+    isAuthenticated: !!user,
+    isAuthSheetOpen,
+    openAuthSheet,
+    closeAuthSheet,
     login,
     signup,
     logout,
