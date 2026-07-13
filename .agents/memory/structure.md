@@ -5,78 +5,120 @@
 ## 📁 전체 구조 트리 (주석포함)
 ```text
 .
-├── dist                                   # 프로덕션 배포용 빌드 결과물(출하 대기 물품)
-│   ├── assets                             # 빌드된 정적 리소스(JS/CSS)
-│   │   ├── index-1Ymzf4hi.js              # 번들링된 메인 자바스크립트 코드
-│   │   └── index-BzhAdxdw.css             # 번들링된 통합 스타일 시트
-│   ├── favicon.svg                        # 빌드된 파비콘 이미지
-│   ├── icons.svg                          # 빌드된 아이콘 스프라이트
-│   └── index.html                         # 배포용 최종 진입점 HTML
-├── docs                                   # 프로젝트 관련 기획 및 디자인 문서(설계도) 보관
-│   ├── bible                              # 프로젝트 핵심 원칙 및 명세서(바이블)
-│   │   ├── FUNCTIONS.md                   # 상세 기능 명세서
-│   │   ├── PRD.md                         # 제품 요구사항 정의서 (기획의도)
-│   │   ├── TECHSTACK.md                   # 프론트엔드 및 백엔드 기술 스택 명세
-│   │   └── commit_convenvion.md           # 깃 커밋 메시지 규칙 가이드
-│   └── design                             # 화면 설계 및 컴포넌트 디자인 시스템
-│       ├── components                     # 공통 재사용 UI 컴포넌트 명세
-│       │   ├── 1_button.md                # 버튼 컴포넌트 스펙 및 상태 명세
-│       │   ├── 2_card.md                  # 카드 레이아웃 컴포넌트 명세
-│       │   ├── 3_badge.md                 # 뱃지(알림/라벨) 컴포넌트 명세
-│       │   ├── 4_chart.md                 # 시세 차트 등 그래프 컴포넌트 명세
-│       │   ├── 5_header_footer.md         # 상단 헤더 및 하단 푸터 영역 명세
-│       │   ├── 6_toggle_tab.md            # 토글 및 탭 전환 컴포넌트 명세
-│       │   └── 7_grid_tile.md             # 그리드 뷰 및 타일 레이아웃 명세
-│       ├── pages                          # 개별 화면(페이지)별 UI/UX 명세
-│       │   ├── 0_main(mobile).md          # 모바일 뷰어용 메인 화면 명세
-│       │   ├── 0_main(window).md          # 데스크탑/웹용 메인 화면 명세
-│       │   ├── 1_detail_price.md          # 가격 상세 시세 조회 화면 명세
-│       │   ├── 2_onboarding_step1_textsize.md # 텍스트 크기 설정 온보딩 화면
-│       │   ├── 3_onboarding_step2_selectcategory.md # 관심 카테고리 선택 온보딩 화면
-│       │   └── 4_onboarding_step3_searchableselect.md # 검색 가능 선택 UI 온보딩 화면
-│       └── BASE.md                        # 타이포그래피, 색상 등 기본 디자인 시스템
-├── public                                 # 빌드 시 그대로 복사되는 정적 에셋 폴더
-│   ├── favicon.svg                        # 브라우저 탭에 표시되는 파비콘 아이콘
-│   └── icons.svg                          # 공통으로 사용되는 SVG 아이콘 스프라이트 모음
-├── src                                    # 애플리케이션의 핵심 소스 코드 (작업 현장)
-│   ├── api                                # 외부 통신 및 데이터 패칭 계층
-│   │   ├── mock                           # API 모킹 데이터 및 로직
-│   │   │   └── marketMock.ts              # 시세 조회를 위한 임시 하드코딩 데이터
-│   │   ├── services                       # 실제 비즈니스 통신 로직
-│   │   │   └── marketService.ts           # 시세 조회 데이터 요청/응답 처리 함수
-│   │   ├── types                          # 통신에 사용되는 타입스크립트 인터페이스
-│   │   │   └── market.ts                  # 데이터 타입 정의 및 모델
-│   │   └── index.ts                       # API 모듈 외부 공개 엔트리
-│   ├── assets                             # 빌더에 의해 처리되는 컴포넌트 종속 에셋
-│   │   ├── hero.png                       # 메인 화면 등에 사용되는 히어로 이미지
-│   │   └── vite.svg                       # Vite 빌드 툴 로고 이미지
-│   ├── components                         # 화면을 구성하는 React 컴포넌트 폴더
-│   │   ├── common                         # 도메인에 종속되지 않은 공통 컴포넌트
-│   │   │   ├── Footer.tsx                 # 하단 푸터 영역 컴포넌트
-│   │   │   ├── Header.tsx                 # 상단 헤더 영역 컴포넌트
-│   │   │   └── Layout.tsx                 # 페이지 전체 레이아웃 래퍼 컴포넌트
-│   │   └── domain                         # 특정 비즈니스 로직(시세 등) 종속 컴포넌트
-│   │       ├── FavoritePriceList.tsx      # 관심 시세 리스트 출력 컴포넌트
-│   │       ├── KakaoShareButton.tsx       # 카카오톡 공유 기능 버튼 컴포넌트
-│   │       ├── PriceCard.tsx              # 개별 품목 시세 정보 표시 카드 컴포넌트
-│   │       └── SummaryStats.tsx           # 요약 통계 정보 표시 컴포넌트
-│   ├── pages                              # 라우팅 단위 화면 컨테이너 폴더
-│   │   └── MainPage.tsx                 # 앱 진입 시 보이는 메인 화면 컴포넌트
-│   ├── utils                              # 전역적으로 사용되는 유틸리티 함수 모음
-│   │   └── formatter.ts                 # 가격 포맷팅 등 데이터 변환 헬퍼 함수
-│   ├── App.tsx                            # 최상위 라우팅 및 전역 상태 관리 컴포넌트
-│   ├── index.css                          # 애플리케이션 전체 글로벌 스타일 시트
-│   └── main.tsx                           # React 앱을 브라우저 DOM에 렌더링하는 엔트리 포인트
-├── README.md                              # 프로젝트 실행 및 환경 설정 가이드문서
-├── index.html                             # SPA 렌더링 컨테이너가 되는 메인 마크업 문서
-├── package-lock.json                      # NPM 패키지 의존성 트리의 버전 잠금 파일
-├── package.json                           # 라이브러리 의존성 목록 및 실행 스크립트 명세
-├── tsconfig.app.json                      # 프론트엔드 앱 실행 코드를 위한 타입스크립트 설정
-├── tsconfig.json                          # 전체 프로젝트 타입스크립트 베이스 설정 파일
-├── tsconfig.node.json                     # 빌드 도구(Vite)를 위한 Node.js 환경 타입스크립트 설정
-└── vite.config.ts                         # Vite 번들러 구동 및 개발 서버 환경 설정 파일
-
-20 directories, 51 files
+├── .agents                                # 에이전트 시스템 전체 메인 가이드라인
+│   ├── memory                             # 상태 및 구조 메모리 보관
+│   │   ├── context.md                     # 문맥
+│   │   ├── history.md                     # 작업 완료 기록
+│   │   ├── status.md                      # 현재 상태
+│   │   └── structure.md                   # 디렉토리 구조
+│   ├── rules                              # 에이전트 시스템 규칙
+│   │   ├── education.md                   # 교육 가이드라인
+│   │   └── rules.md                       # 전역 룰
+│   └── workflows                          # 워크플로우 정의
+│       ├── arichitecture.md               # 아키텍처 가이드라인
+│       ├── commit_convention.md           # 커밋 컨벤션
+│       ├── feature_request.md             # 기능 요청
+│       └── structure.md                   # 구조 갱신
+├── .gitignore                             # Git 추적 제외 파일 목록
+├── .gitmessage                            # Git 커밋 메시지 템플릿
+├── .oxlintrc.json                         # oxlint 설정
+├── README.md                              # 프로젝트 소개 및 사용법 리드미
+├── docs                                   # 프로젝트 기획 및 디자인 문서 보관
+│   ├── bible                              # 핵심 원칙 및 명세서
+│   │   ├── CATEGORIES.md                  # 카테고리 명세서
+│   │   ├── FUNCTIONS.md                   # 상세 기능 명세서
+│   │   ├── PRD.md                         # 제품 요구사항 정의서
+│   │   ├── TECHSTACK.md                   # 기술 스택 명세
+│   │   └── commit_convention.md           # 깃 커밋 메시지 규칙 가이드
+│   ├── data                               # 데이터 모델 및 명세
+│   │   ├── INTERNAL_RAW_SPEC.md           # 내부 로우 데이터 구조
+│   │   └── USER_SERVED_SPEC.md            # 사용자 제공 데이터 명세
+│   └── design                             # 화면 설계 및 디자인 시스템
+│       ├── BASE.md                        # 기본 디자인 시스템
+│       ├── components                     # 공통 재사용 UI 컴포넌트 명세
+│       │   ├── 1_button.md                # 버튼 컴포넌트 스펙
+│       │   ├── 2_card.md                  # 카드 레이아웃 명세
+│       │   ├── 3_badge.md                 # 뱃지 명세
+│       │   ├── 4_chart.md                 # 차트 명세
+│       │   ├── 5_header_footer.md         # 헤더 푸터 명세
+│       │   ├── 6_toggle_tab.md            # 토글 및 탭 명세
+│       │   └── 7_grid_tile.md             # 그리드 타일 명세
+│       └── pages                          # 개별 화면 명세
+│           ├── 0_main(mobile).md          # 모바일 메인
+│           ├── 0_main(window).md          # 윈도우 메인
+│           ├── 1_detail_price.md          # 가격 상세 조회
+│           ├── 2_onboarding_step1_textsize.md # 텍스트 설정 온보딩
+│           ├── 3_onboarding_step2_selectcategory.md # 관심 카테고리 온보딩
+│           └── 4_onboarding_step3_searchableselect.md # 검색 온보딩
+├── index.html                             # 메인 마크업 진입점
+├── package-lock.json                      # NPM 패키지 잠금 파일
+├── package.json                           # 패키지 설정 및 스크립트
+├── public                                 # 정적 에셋
+│   ├── favicon.svg                        # 파비콘
+│   └── icons.svg                          # 공통 아이콘 스프라이트
+├── src                                    # 메인 소스 코드 디렉토리
+│   ├── App.tsx                            # 최상위 라우팅 및 전역 상태 관리
+│   ├── api                                # API 연동 계층
+│   │   ├── index.ts                       # API 엔트리
+│   │   ├── mock                           # 모의 데이터
+│   │   │   └── marketMock.ts              # 시세 모의 데이터
+│   │   ├── services                       # API 서비스
+│   │   │   ├── marketService.ts           # 시장 데이터 서비스
+│   │   │   └── priceAggregationService.ts # 가격 집계 서비스
+│   │   └── types                          # 타입 정의
+│   │       └── market.ts                  # 시장 데이터 타입
+│   ├── assets                             # 빌드용 내부 정적 자산
+│   │   ├── hero.png                       # 히어로 이미지
+│   │   └── vite.svg.jpg                   # Vite 아이콘
+│   ├── components                         # UI 컴포넌트
+│   │   ├── common                         # 공통 컴포넌트
+│   │   │   ├── Badge.tsx                  # 뱃지 컴포넌트
+│   │   │   ├── Button.tsx                 # 버튼 컴포넌트
+│   │   │   ├── ConfirmDialog.tsx          # 확인 대화상자
+│   │   │   ├── EmptyState.tsx             # 빈 상태 표시
+│   │   │   ├── ErrorState.tsx             # 에러 상태 표시
+│   │   │   ├── FontSizeSelector.tsx       # 폰트 크기 선택기
+│   │   │   ├── Footer.tsx                 # 푸터
+│   │   │   ├── Header.tsx                 # 헤더
+│   │   │   ├── InlineError.tsx            # 인라인 에러
+│   │   │   ├── Layout.tsx                 # 기본 레이아웃
+│   │   │   ├── ListSkeleton.tsx           # 리스트 스켈레톤
+│   │   │   ├── LoadingScreen.tsx          # 로딩 스크린
+│   │   │   ├── PageLayout.tsx             # 페이지 레이아웃
+│   │   │   ├── Pagination.tsx             # 페이지네이션
+│   │   │   ├── SearchInput.tsx            # 검색 입력창
+│   │   │   ├── SegmentedControl.tsx       # 세그먼트 컨트롤 탭
+│   │   │   └── Toast.tsx                  # 토스트 알림
+│   │   └── domain                         # 도메인 특화 컴포넌트
+│   │       ├── AnimalSelect.tsx           # 동물(품목) 선택기
+│   │       ├── FavoriteManager.tsx        # 즐겨찾기 관리자
+│   │       ├── FavoritePriceList.tsx      # 관심 시세 리스트
+│   │       ├── FavoriteShareSheet.tsx     # 즐겨찾기 공유 시트
+│   │       ├── KakaoShareButton.tsx       # 카카오 공유 버튼
+│   │       ├── PriceCard.tsx              # 가격 카드
+│   │       ├── SummaryStats.tsx           # 요약 통계
+│   │       └── price-detail               # 시세 상세 관련
+│   │           ├── DetailHeader.tsx       # 상세 화면 헤더
+│   │           ├── PriceDetailSheet.tsx   # 시세 상세 바텀시트
+│   │           ├── PriceSummaryCard.tsx   # 시세 요약 카드
+│   │           └── SourceList.tsx         # 소스(출처) 리스트
+│   ├── hooks                              # 커스텀 훅
+│   │   ├── useFavorites.ts                # 즐겨찾기 훅
+│   │   ├── usePriceDetail.ts              # 가격 상세 훅
+│   │   └── useSettings.ts                 # 설정 훅
+│   ├── index.css                          # 글로벌 스타일시트
+│   ├── main.tsx                           # 앱 진입점
+│   ├── pages                              # 라우팅 단위 화면 컨테이너
+│   │   ├── AllPricesPage.tsx              # 전체 시세 페이지
+│   │   ├── MainPage.tsx                   # 메인 대시보드
+│   │   └── SettingsPage.tsx               # 설정 페이지
+│   └── utils                              # 유틸리티 함수
+│       ├── formatter.ts                   # 포맷팅 유틸
+│       └── koreanSearch.ts                # 한국어 초성 검색 유틸
+├── tsconfig.app.json                      # 타입스크립트 앱 설정
+├── tsconfig.json                          # 타입스크립트 베이스 설정
+├── tsconfig.node.json                     # Vite 노드 환경 설정
+└── vite.config.ts                         # Vite 빌드 설정
 ```
 
 ## 🧠 주요 폴더 및 파일 설명 (비유: IT 회사의 조직 및 설계도)

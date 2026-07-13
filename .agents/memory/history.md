@@ -1,5 +1,27 @@
 # 히스토리 (작업 완료 기록)
 
+## 2026-07-13
+
+### 🛠️ 프로젝트 구조 개편 및 TypeScript 도입 (Architecture & Setup)
+- **TypeScript 환경 마이그레이션**
+  - 기존 JavaScript 코드를 TypeScript(`*.tsx`, `*.ts`)로 변환 및 컴포넌트/API 모듈 계층 구조 개편 완료.
+- **문서화 (Documentation)**
+  - `README.md` 개편 및 데이터 관점 CRUD, API 매핑 기준 문서화(`INTERNAL_RAW_SPEC.md`, `USER_SERVED_SPEC.md`).
+  - 에셋 확장자 정리 및 불필요 파일 삭제.
+
+### ✨ 메인 화면 고도화 및 기능 구현 (Main Page Features)
+- **메인 화면 카테고리 탭 및 스크롤 기능**
+  - 카테고리 탭(`SegmentedControl`) 적용 및 무한 스크롤(페이지네이션 로딩) 기능 구현.
+  - 즐겨찾기 시세 목록 화면 고도화, 상태 처리 및 레이아웃 텍스트 수정.
+
+### 📊 시세 목록 및 상세 조회 구현 (Market List & Detail)
+- **전체 시세 목록 및 상세 바텀시트**
+  - 전체 시세 목록 페이지(`AllPricesPage.tsx`) 및 검색/필터링 기능 적용.
+  - 모바일 친화적인 시세 상세 조회 바텀시트(`PriceDetailSheet.tsx`) 구현.
+- **버그 수정 (Bug Fixes)**
+  - 한글 초성 검색 인덱싱 매칭(`koreanSearch.ts`) 관련 버그 해결.
+  - 모달 및 바텀시트의 `z-index` 겹침 문제 및 화면 레이아웃 최적화 완료.
+
 ## 2026-07-10
 
 ### 🐙 버전 관리 및 배포 준비 (Version Control)
