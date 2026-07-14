@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { authService } from '../api/services/authService';
 import { useAuthContext } from '../contexts/AuthContext';
 import { getErrorMessage } from '../utils/errorDictionary';
+import { ApiClientError } from '../api/types/common';
+import { useFavoriteMigration } from './useFavoriteMigration';
 
 interface AuthError {
   errorCode: string;
@@ -15,7 +17,8 @@ interface AuthError {
  * 에러 매핑(UX First)과 상태 관리를 담당합니다.
  */
 export function useAuth() {
-  const { user, isAuthSheetOpen, openAuthSheet, closeAuthSheet, setAuth, clearAuth } = useAuthContext();
+  const { accessToken, user, isAuthSheetOpen, openAuthSheet, closeAuthSheet, setAuth, clearAuth } = useAuthContext();
+  const { migrateLocalFavorites } = useFavoriteMigration();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<AuthError | null>(null);
 
@@ -24,12 +27,12 @@ export function useAuth() {
     setError(null);
     try {
       return await apiCall();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[useAuth] API Error:', err);
-      const errorCode = err?.errorCode || 'UNKNOWN_ERROR';
+      const errorCode = err instanceof ApiClientError ? err.errorCode : 'UNKNOWN_ERROR';
       setError({
         errorCode,
-        message: getErrorMessage(errorCode),
+        message: err instanceof ApiClientError ? err.message || getErrorMessage(errorCode) : getErrorMessage(errorCode),
       });
       return null;
     } finally {
@@ -41,6 +44,7 @@ export function useAuth() {
     const data = await handleApiCall(() => authService.login(email, password));
     if (data) {
       setAuth(data.accessToken, data.user || null);
+      await migrateLocalFavorites(data.accessToken);
       return true;
     }
     return false;
@@ -50,13 +54,14 @@ export function useAuth() {
     const data = await handleApiCall(() => authService.signup(email, password, nickname, phone));
     if (data) {
       setAuth(data.accessToken, data.user || null);
+      await migrateLocalFavorites(data.accessToken);
       return true;
     }
     return false;
   };
 
   const logout = async (): Promise<boolean> => {
-    const data = await handleApiCall(() => authService.logout());
+    const data = await handleApiCall(() => authService.logout(accessToken));
     if (data !== null) { // success
       clearAuth();
       return true;

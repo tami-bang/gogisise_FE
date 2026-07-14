@@ -1,112 +1,198 @@
-// marketService.ts — USER_SERVED_SPEC.md 기반으로 정렬된 서비스 레이어
-// 규칙: UI 컴포넌트 내부에서 직접 fetch 호출 금지. 모든 통신은 이 파일을 통해서만 처리합니다.
+import { apiClient } from '../apiClient';
+import type {
+  AggregatedPriceDetail,
+  MarketItemsResponse,
+  MarketSummary,
+  PriceHistory,
+  PriceItem,
+  SourcePriceRecord,
+  TrendStatus,
+} from '../types/market';
+import type { ApiRequestOptions } from '../types/common';
 
-import type { MarketSummary, PriceItem, MarketServiceConfig } from '../types/market';
-import { mockMarketSummary, allMockPrices } from '../mock/marketMock';
+const MARKET_PATH = '/api/v1/market';
 
-const DEFAULT_DELAY = 800;
+export interface MarketServiceRequestOptions {
+  accessToken?: string | null;
+  signal?: AbortSignal;
+}
 
-// 네트워크 지연 시뮬레이터 (실제 API 연동 전까지 사용)
-const simulateNetwork = <T>(
-  data: T,
-  config?: MarketServiceConfig
-): Promise<T> => {
-  return new Promise((resolve, reject) => {
-    const delay = config?.delay ?? DEFAULT_DELAY;
-    setTimeout(() => {
-      if (config?.shouldFail) {
-        reject(new Error('네트워크 요청에 실패했습니다.'));
-        return;
-      }
-      resolve(data);
-    }, delay);
-  });
+type MarketItemsPayload = MarketItemsResponse | PriceItem[];
+
+const normalizeTrendStatus = (value: unknown): TrendStatus | null => {
+  return value === 'UP' || value === 'DOWN' || value === 'UNCHANGED' ? value : null;
+};
+
+const normalizeSourceRecord = (record: SourcePriceRecord, index: number): SourcePriceRecord => ({
+  ...record,
+  id: record.id || `${record.sourceName || 'source'}-${record.rawProductName || index}-${index}`,
+  sourceName: record.sourceName || '-',
+  rawProductName: record.rawProductName || '',
+  price: typeof record.price === 'number' ? record.price : 0,
+  collectedAt: record.collectedAt || new Date().toISOString(),
+  includedInAverage: Boolean(record.includedInAverage),
+});
+
+const normalizePriceItem = (item: PriceItem): PriceItem => ({
+  ...item,
+  searchKeywords: item.searchKeywords ?? '',
+  price: item.price ?? null,
+  previousPrice: item.previousPrice ?? null,
+  changeAmount: item.changeAmount ?? null,
+  trendStatus: normalizeTrendStatus(item.trendStatus),
+  currency: item.currency ?? 'KRW',
+  priceUnit: item.priceUnit ?? 'KRW_PER_KG',
+  isFavorite: item.isFavorite ?? false,
+});
+
+const normalizeMarketItemsResponse = (payload: MarketItemsPayload): MarketItemsResponse => {
+  if (Array.isArray(payload)) {
+    return {
+      dataStatus: 'CURRENT',
+      marketDate: new Date().toISOString().slice(0, 10),
+      items: payload.map(normalizePriceItem),
+    };
+  }
+
+  return {
+    dataStatus: payload.dataStatus ?? 'CURRENT',
+    marketDate: payload.marketDate ?? new Date().toISOString().slice(0, 10),
+    items: Array.isArray(payload.items) ? payload.items.map(normalizePriceItem) : [],
+  };
+};
+
+const normalizePriceDetail = (detail: AggregatedPriceDetail): AggregatedPriceDetail => ({
+  ...detail,
+  averagePrice: detail.averagePrice ?? 0,
+  changeAmount: detail.changeAmount ?? null,
+  trendStatus: normalizeTrendStatus(detail.trendStatus) ?? 'UNCHANGED',
+  highestPrice: detail.highestPrice ?? 0,
+  lowestPrice: detail.lowestPrice ?? 0,
+  participantCount: detail.participantCount ?? 0,
+  sourceRecords: Array.isArray(detail.sourceRecords)
+    ? detail.sourceRecords.map(normalizeSourceRecord)
+    : [],
+  animalType: detail.animalType ?? 'BEEF',
+  storageType: detail.storageType ?? 'CHILLED',
+  unit: detail.unit ?? '1kg',
+});
+
+const toApiOptions = (options?: MarketServiceRequestOptions): ApiRequestOptions => ({
+  accessToken: options?.accessToken,
+  signal: options?.signal,
+});
+
+const sumChanges = (items: PriceItem[], species: 'BEEF' | 'PORK') => {
+  return items
+    .filter((item) => item.species === species && typeof item.changeAmount === 'number')
+    .reduce((sum, item) => sum + (item.changeAmount ?? 0), 0);
+};
+
+const toTrendStatus = (value: number): TrendStatus => {
+  if (value > 0) return 'UP';
+  if (value < 0) return 'DOWN';
+  return 'UNCHANGED';
+};
+
+const buildMarketSummary = (items: PriceItem[]): MarketSummary => {
+  const beefValue = sumChanges(items, 'BEEF');
+  const porkValue = sumChanges(items, 'PORK');
+  const totalValue = beefValue + porkValue;
+  const trendStatus = toTrendStatus(totalValue);
+
+  return {
+    trendStatus,
+    trendMessage: trendStatus === 'UP' ? '상승세' : trendStatus === 'DOWN' ? '하락세' : '변동 없음',
+    beefSummary: { value: beefValue, status: toTrendStatus(beefValue) },
+    porkSummary: { value: porkValue, status: toTrendStatus(porkValue) },
+  };
 };
 
 export const marketService = {
-  // 홈 화면 요약 카드 데이터
-  getMarketSummary: async (
-    config?: MarketServiceConfig
-  ): Promise<MarketSummary> => {
-    return simulateNetwork(mockMarketSummary, config);
+  getMarketItemsResponse: async (
+    options?: MarketServiceRequestOptions
+  ): Promise<MarketItemsResponse> => {
+    const payload = await apiClient.get<MarketItemsPayload>(
+      `${MARKET_PATH}/items`,
+      toApiOptions(options)
+    );
+    return normalizeMarketItemsResponse(payload);
   },
 
-  // ─────────────────────────────────────────────────────────────────
-  // GET /api/v1/market/items (Zero-Delay 전체 배열 서빙)
-  // USER_SERVED_SPEC 섹션 1.1 — 탭 필터·검색은 FE 메모리 단에서 처리
-  // 서버는 페이징·검색 파라미터 없이 가공된 전체 플랫 배열을 통째로 반환합니다.
-  // ─────────────────────────────────────────────────────────────────
   getAllItems: async (
-    config?: MarketServiceConfig
+    options?: MarketServiceRequestOptions
   ): Promise<PriceItem[]> => {
-    if (config?.isEmpty) {
-      return simulateNetwork([], config);
-    }
-    // 실제 API 연동 시: GET /api/v1/market/items → response.data.items
-    return simulateNetwork([...allMockPrices], config);
+    const response = await marketService.getMarketItemsResponse(options);
+    return response.items;
   },
 
-  // ─────────────────────────────────────────────────────────────────
-  // GET /api/v1/market/items/{itemId}/calculations
-  // USER_SERVED_SPEC 섹션 1.2 — 카드 터치 시 산출 세부 내역 조회
-  // ─────────────────────────────────────────────────────────────────
+  getMarketSummary: async (
+    options?: MarketServiceRequestOptions
+  ): Promise<MarketSummary> => {
+    const items = await marketService.getAllItems(options);
+    return buildMarketSummary(items);
+  },
+
   getPriceDetail: async (
     itemId: string,
-    config?: MarketServiceConfig
-  ) => {
-    // mockAggregatedDetails를 동적으로 불러오기 (순환참조 방지)
-    const { mockAggregatedDetails } = await import('../mock/marketMock');
-    const detail = mockAggregatedDetails[itemId];
-    if (!detail) {
-      return simulateNetwork(null, { ...config, shouldFail: true });
-    }
-    return simulateNetwork(detail, config);
+    options?: MarketServiceRequestOptions
+  ): Promise<AggregatedPriceDetail> => {
+    const detail = await apiClient.get<AggregatedPriceDetail>(
+      `${MARKET_PATH}/items/${encodeURIComponent(itemId)}/calculations`,
+      toApiOptions(options)
+    );
+    return normalizePriceDetail(detail);
   },
 
-  // ─────────────────────────────────────────────────────────────────
-  // 즐겨찾기 품목만 필터링 (FE 로컬 처리 — API 호출 없음)
-  // USER_SERVED_SPEC 섹션 2.1: GET /api/v1/users/me/favorites
-  // 실제 연동 시 이 함수를 서버 요청으로 교체합니다.
-  // ─────────────────────────────────────────────────────────────────
+  getPriceHistory: async (
+    itemId: string,
+    options?: MarketServiceRequestOptions
+  ): Promise<PriceHistory> => {
+    return apiClient.get<PriceHistory>(
+      `${MARKET_PATH}/items/${encodeURIComponent(itemId)}/price-history`,
+      toApiOptions(options)
+    );
+  },
+
   getFavoritePrices: async (
     favoriteIds: string[],
-    config?: MarketServiceConfig
+    options?: MarketServiceRequestOptions
   ): Promise<PriceItem[]> => {
-    if (config?.isEmpty || favoriteIds.length === 0) {
-      return simulateNetwork([], config);
+    if (favoriteIds.length === 0) {
+      return [];
     }
-    // allMockPrices에서 itemId 기준으로 필터링
-    const data = allMockPrices.filter(i => favoriteIds.includes(i.itemId));
-    return simulateNetwork(data, config);
+
+    const items = await marketService.getAllItems(options);
+    return favoriteIds
+      .map((id) => items.find((item) => item.itemId === id))
+      .filter((item): item is PriceItem => Boolean(item));
   },
 
-  // ─────────────────────────────────────────────────────────────────
-  // 레거시 페이징 방식 (기존 코드 호환용 — 실제 API에서는 미사용)
-  // Zero-Delay 전략으로 전환되어 getAllItems()로 대체됩니다.
-  // ─────────────────────────────────────────────────────────────────
   getPrices: async (
-    config?: MarketServiceConfig
+    options?: MarketServiceRequestOptions & {
+      page?: number;
+      limit?: number;
+      storageType?: 'CHILLED' | 'FROZEN';
+      animalType?: 'BEEF' | 'PORK';
+    }
   ): Promise<{ items: PriceItem[]; hasNextPage: boolean }> => {
-    if (config?.isEmpty) {
-      return simulateNetwork({ items: [], hasNextPage: false }, config);
+    let filtered = await marketService.getAllItems(options);
+
+    if (options?.animalType) {
+      filtered = filtered.filter((item) => item.species === options.animalType);
+    }
+    if (options?.storageType) {
+      filtered = filtered.filter((item) => item.storageType === options.storageType);
     }
 
-    let filtered = [...allMockPrices];
-
-    if (config?.animalType) {
-      filtered = filtered.filter(item => item.species === config.animalType);
-    }
-    if (config?.storageType) {
-      filtered = filtered.filter(item => item.storageType === config.storageType);
-    }
-
-    const page = config?.page ?? 1;
-    const limit = config?.limit ?? 15;
+    const page = options?.page ?? 1;
+    const limit = options?.limit ?? 15;
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
-    const slicedItems = filtered.slice(startIndex, endIndex);
-    const hasNextPage = endIndex < filtered.length;
 
-    return simulateNetwork({ items: slicedItems, hasNextPage }, config);
+    return {
+      items: filtered.slice(startIndex, endIndex),
+      hasNextPage: endIndex < filtered.length,
+    };
   },
 };

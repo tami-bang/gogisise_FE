@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { authService } from '../api/services/authService';
 import { useAuthContext } from '../contexts/AuthContext';
+import { useFavoriteMigration } from './useFavoriteMigration';
 
 /**
  * 앱 진입 시 최우선으로 실행되어 Silent Refresh를 수행하는 훅.
@@ -10,6 +11,7 @@ import { useAuthContext } from '../contexts/AuthContext';
  */
 export function useInitializeAuth() {
   const { setAuth, clearAuth } = useAuthContext();
+  const { migrateLocalFavorites } = useFavoriteMigration();
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
@@ -21,6 +23,7 @@ export function useInitializeAuth() {
         const data = await authService.refresh();
         if (isMounted) {
           setAuth(data.accessToken, data.user || null);
+          await migrateLocalFavorites(data.accessToken);
         }
       } catch (error) {
         // 리프레시 실패 (쿠키 만료 등) -> 로그아웃 상태 유지
@@ -40,7 +43,7 @@ export function useInitializeAuth() {
     return () => {
       isMounted = false;
     };
-  }, [setAuth, clearAuth]);
+  }, [setAuth, clearAuth, migrateLocalFavorites]);
 
   return { isInitializing };
 }

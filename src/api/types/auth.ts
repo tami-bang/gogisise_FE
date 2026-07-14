@@ -2,16 +2,32 @@
 
 export interface User {
   userId: string;
-  email: string;
+  email?: string;
   nickname: string;
   phone?: string;
-  status: 'ACTIVE' | 'LOCKED' | 'BANNED';
+  status?: 'ACTIVE' | 'LOCKED' | 'BANNED';
 }
 
 export interface AuthResponseData {
-  accessToken: string; // JWE Encrypted string in real scenario
-  expiresIn: number;
+  accessToken: string;
+  expiresIn?: number;
   user?: User;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+  autoLogin?: boolean;
+}
+
+export interface SignupRequest {
+  email: string;
+  password: string;
+  nickname: string;
+}
+
+export interface SendResetLinkResponse {
+  message?: string;
 }
 
 // Wrapper structure matching common spec

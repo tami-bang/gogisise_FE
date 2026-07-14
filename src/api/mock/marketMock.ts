@@ -86,7 +86,7 @@ function buildSearchKeywords(
 
     // [초성/부위명 + 등급] 결합 토큰 추가 (예: ㅅㄱ1, 삼겹1, ㅇㅅ1++, 안심1pp)
     // 사장님들이 띄어쓰기 없이 붙여서 검색하는 경우 지원
-    const gradeSuffixes = [grade];
+    const gradeSuffixes: string[] = [grade];
     if (grade === '1++') gradeSuffixes.push('1pp', '1PP');
     if (grade === '1+') gradeSuffixes.push('1p', '1P');
 

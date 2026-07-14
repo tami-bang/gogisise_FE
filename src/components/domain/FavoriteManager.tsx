@@ -3,7 +3,6 @@ import { useFavorites } from '../../hooks/useFavorites';
 import { useAuth } from '../../hooks/useAuth';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { EmptyState } from '../common/EmptyState';
-import { marketService } from '../../api/services/marketService';
 import type { PriceItem } from '../../api/types/market';
 import { PriceCard } from './PriceCard';
 import { PriceDetailSheet } from './price-detail/PriceDetailSheet';

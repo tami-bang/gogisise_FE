@@ -22,7 +22,7 @@ export function LoginForm({ onSwitchToSignup, onSwitchToMagicLink, onSwitchToFin
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   
-  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [, setLoginAttempts] = useState(0);
   const [lockoutEndTime, setLockoutEndTime] = useState<number | null>(null);
   const [lockRemainingSeconds, setLockRemainingSeconds] = useState(0);
 
