@@ -9,7 +9,7 @@
 #### `Raw_Records` (원본 실매물 적재 테이블)
 | 컬럼명 | 타입 | PK/FK/UK | Nullable | 설명 |
 | --- | --- | --- | --- | --- |
-| `rawRecordId` | VARCHAR | PK | ❌ | 원본 레코드 고유 식별자 |
+| `rawRecordId` | UUID | PK | ❌ | 원본 실매물 고유 식별자 (gen_random_uuid()) |
 | `sourceName` | VARCHAR | | ❌ | 수집처 (GEUMCHEON 고정) |
 | `collectedAt` | DATETIME | | ❌ | 크롤링 시각 |
 | `rawProductName` | VARCHAR | | ❌ | 쇼핑몰에 등록된 날것의 상품명 전체 |
@@ -24,7 +24,7 @@
 #### `Market_Items` (가공된 품목 마스터)
 | 컬럼명 | 타입 | PK/FK/UK | Nullable | 설명 |
 | --- | --- | --- | --- | --- |
-| `itemId` | VARCHAR | PK | ❌ | 품목 고유 식별자 |
+| `itemId` | UUID | PK | ❌ | 품목 고유 식별자 (gen_random_uuid()) |
 | `species` | VARCHAR | | ❌ | 축종 (BEEF, PORK) |
 | `storageType` | VARCHAR | | ❌ | 보관 상태 (CHILLED, FROZEN) |
 | `category` | VARCHAR | | ❌ | 부위 그룹명 |
@@ -39,8 +39,8 @@
 #### `Market_Item_Prices` (품목별 일자별 시세 이력)
 | 컬럼명 | 타입 | PK/FK/UK | Nullable | 설명 |
 | --- | --- | --- | --- | --- |
-| `priceId` | VARCHAR | PK | ❌ | 가격 내역 고유 식별자 |
-| `itemId` | VARCHAR | FK / UK1 | ❌ | Market_Items 외래키 |
+| `priceId` | UUID | PK | ❌ | 가격 내역 고유 식별자 (gen_random_uuid()) |
+| `itemId` | UUID | FK / UK1 | ❌ | Market_Items 외래키 |
 | `marketDate` | DATE | UK1 | ❌ | 시세 기준일 (itemId와 함께 복합 고유키) |
 | `price` | INT | | ✅ | 가공 평균가 |
 | `previousPrice` | INT | | ✅ | 전일 가격 |
@@ -55,7 +55,7 @@
 #### `Users` (유저 마스터)
 | 컬럼명 | 타입 | PK/FK/UK | Nullable | 설명 |
 | --- | --- | --- | --- | --- |
-| `userId` | VARCHAR | PK | ❌ | 유저 마스터 고유 식별자 |
+| `userId` | UUID | PK | ❌ | 유저 마스터 고유 식별자 (gen_random_uuid()) |
 | `email` | VARCHAR | UK | ❌ | 통합 이메일 (유니크) |
 | `phone` | VARCHAR | UK | ❌ | **[기획반영]** 휴대폰 번호 (이메일 찾기 등 본인 인증용) |
 | `password` | VARCHAR | | ✅ | 자체 가입용 해싱 암호 |
@@ -68,8 +68,8 @@
 #### `User_Social_Accounts` (소셜 연동 정보)
 | 컬럼명 | 타입 | PK/FK/UK | Nullable | 설명 |
 | --- | --- | --- | --- | --- |
-| `socialId` | VARCHAR | PK | ❌ | 소셜 연동 고유 식별자 |
-| `userId` | VARCHAR | FK | ❌ | Users 외래키 (1:N) |
+| `socialId` | UUID | PK | ❌ | 소셜 연동 고유 식별자 (gen_random_uuid()) |
+| `userId` | UUID | FK | ❌ | Users 외래키 (1:N) |
 | `provider` | VARCHAR | | ❌ | 제공자 (KAKAO 등) |
 | `providerUid` | VARCHAR | | ❌ | 플랫폼 내 식별값 |
 | `createdAt` | DATETIME | | ❌ | 연동 일시 (Audit) |
@@ -77,8 +77,8 @@
 #### `User_Tokens` (RTR 토큰 세션)
 | 컬럼명 | 타입 | PK/FK/UK | Nullable | 설명 |
 | --- | --- | --- | --- | --- |
-| `tokenId` | VARCHAR | PK | ❌ | 토큰 세션 식별자 |
-| `userId` | VARCHAR | FK | ❌ | Users 외래키 |
+| `tokenId` | UUID | PK | ❌ | 토큰 세션 식별자 (gen_random_uuid()) |
+| `userId` | UUID | FK | ❌ | Users 외래키 |
 | `refreshToken` | VARCHAR | | ❌ | 암호화된 리프레시 토큰 |
 | `isBlacklisted` | BOOLEAN | | ❌ | 강제 무효화 여부 |
 | `expiresAt` | DATETIME | | ❌ | **[TTL 관리]** 만료 일시 (배치 삭제용) |
@@ -88,17 +88,17 @@
 #### `Favorites` (즐겨찾기)
 | 컬럼명 | 타입 | PK/FK/UK | Nullable | 설명 |
 | --- | --- | --- | --- | --- |
-| `favoriteId` | VARCHAR | PK | ❌ | 즐겨찾기 식별자 |
-| `userId` | VARCHAR | FK / UK1 | ❌ | Users 외래키 |
-| `itemId` | VARCHAR | FK / UK1 | ❌ | Market_Items 외래키 (userId와 함께 복합 고유키) |
+| `favoriteId` | UUID | PK | ❌ | 즐겨찾기 식별자 (gen_random_uuid()) |
+| `userId` | UUID | FK / UK1 | ❌ | Users 외래키 |
+| `itemId` | UUID | FK / UK1 | ❌ | Market_Items 외래키 (userId와 함께 복합 고유키) |
 | `createdAt` | DATETIME | | ❌ | 즐겨찾기 추가 일시 (Audit) |
 
 #### `User_Views_Log` (조회 이력)
 | 컬럼명 | 타입 | PK/FK/UK | Nullable | 설명 |
 | --- | --- | --- | --- | --- |
-| `logId` | VARCHAR | PK | ❌ | 조회 로그 식별자 |
-| `userId` | VARCHAR | FK | ❌ | Users 외래키 |
-| `itemId` | VARCHAR | FK | ❌ | Market_Items 외래키 |
+| `logId` | UUID | PK | ❌ | 조회 로그 식별자 (gen_random_uuid()) |
+| `userId` | UUID | FK | ❌ | Users 외래키 |
+| `itemId` | UUID | FK | ❌ | Market_Items 외래키 |
 | `viewedAt` | DATETIME | | ❌ | **[Partition Key]** 조회 일시 (파티셔닝 및 아카이빙 기준) |
 
 ## 2. 🔗 테이블 간 관계 (Relationships)
@@ -128,3 +128,6 @@
 
 5. **감사 추적 (Audit Trail)**
    - 시스템의 투명한 추적과 운영 이슈 파악을 위해 핵심 엔티티(`Raw_Records`, `Market_Items`, `Users` 등)에 `createdAt`, `updatedAt` 필드를 기본 규격으로 구성하였습니다.
+
+6. **외래키(FK) 연쇄 삭제 정책 (Cascade)**
+   - 모든 외래키(FK) 관계에는 종속 데이터가 방치되는 고아(Orphan) 현상을 막기 위해 `ON DELETE CASCADE`를 명시적으로 적용합니다. 부모 데이터(예: Users)가 물리 삭제될 경우, 그 하위 데이터(`User_Tokens`, `User_Social_Accounts` 등)도 자동으로 함께 지워집니다. (기본적으로 `Soft Delete`를 우선하므로 실제 물리 삭제 시에만 작동합니다.)
