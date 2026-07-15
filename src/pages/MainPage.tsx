@@ -231,7 +231,7 @@ export function MainPage() {
 
             {showTooltip && (
               <div className="mx-5 mb-6 bg-[var(--color-primary)] text-white text-body font-bold rounded-[var(--radius-md)] px-4 py-3 flex justify-between items-center shadow-soft animate-fade-in">
-                <span className="flex-1 min-w-0 pr-2">
+                <span className="flex-1 min-w-0 pr-2 text-center">
                   <span className="inline-block whitespace-nowrap">한우 · 한돈 카드를 눌러</span>{' '}
                   <span className="inline-block whitespace-nowrap">시세를 전환할 수 있어요</span>
                 </span>
