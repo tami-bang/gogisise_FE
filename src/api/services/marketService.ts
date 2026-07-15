@@ -353,6 +353,12 @@ const getFallbackHistory = (itemId: string): PriceHistory => {
   };
 };
 
+const setMockModeFlag = (isMock: boolean) => {
+  if (typeof window !== 'undefined' && window.sessionStorage) {
+    window.sessionStorage.setItem('gogisise:is_mock_mode', isMock ? 'true' : 'false');
+  }
+};
+
 export const marketService = {
   getMarketItemsResponse: async (
     options?: MarketServiceRequestOptions
@@ -362,9 +368,11 @@ export const marketService = {
         `${MARKET_PATH}/items`,
         toApiOptions(options)
       );
+      setMockModeFlag(false);
       return normalizeMarketItemsResponse(payload);
     } catch (error) {
       console.warn('[MarketService] API request failed. Falling back to MOCK data:', error);
+      setMockModeFlag(true);
       return {
         dataStatus: 'CURRENT',
         marketDate: new Date().toISOString().slice(0, 10),
@@ -396,9 +404,11 @@ export const marketService = {
         `${MARKET_PATH}/items/${encodeURIComponent(itemId)}/calculations`,
         toApiOptions(options)
       );
+      setMockModeFlag(false);
       return normalizePriceDetail(detail);
     } catch (error) {
       console.warn(`[MarketService] API detail request failed for ${itemId}. Falling back to MOCK data:`, error);
+      setMockModeFlag(true);
       const matched = MOCK_ITEMS.find((i) => i.itemId === itemId);
       return MOCK_DETAILS[itemId] || getFallbackDetail(itemId, matched);
     }
@@ -409,12 +419,15 @@ export const marketService = {
     options?: MarketServiceRequestOptions
   ): Promise<PriceHistory> => {
     try {
-      return await apiClient.get<PriceHistory>(
+      const res = await apiClient.get<PriceHistory>(
         `${MARKET_PATH}/items/${encodeURIComponent(itemId)}/price-history`,
         toApiOptions(options)
       );
+      setMockModeFlag(false);
+      return res;
     } catch (error) {
       console.warn(`[MarketService] API history request failed for ${itemId}. Falling back to MOCK data:`, error);
+      setMockModeFlag(true);
       return getFallbackHistory(itemId);
     }
   },
