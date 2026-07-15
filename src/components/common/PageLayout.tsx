@@ -17,8 +17,12 @@ export const PageLayout = ({ children }: PageLayoutProps) => {
     <div className="w-full max-w-md mx-auto h-screen bg-[var(--color-bg)] px-5 pt-[72px] pb-[96px] box-border flex flex-col relative overflow-x-hidden overflow-y-scroll [scrollbar-gutter:stable] shadow-2xl">
       {isMockMode && (
         <div className="w-full bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.25)] rounded-2xl p-4 mb-4 flex items-start gap-3 shadow-sm transition-all duration-300 hover:border-[rgba(245,158,11,0.4)] shrink-0 animate-fade-in">
-          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[rgba(245,158,11,0.15)] flex items-center justify-center text-amber-500 font-bold animate-pulse">
-            ⚠️
+          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[rgba(245,158,11,0.15)] flex items-center justify-center animate-pulse">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600">
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
           </div>
           <div className="flex-1 min-w-0 flex flex-col gap-0.5">
             <h4 className="text-sm font-semibold text-amber-700 leading-tight">
