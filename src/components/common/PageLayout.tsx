@@ -16,7 +16,7 @@ export const PageLayout = ({ children }: PageLayoutProps) => {
   return (
     <div className="w-full max-w-md mx-auto h-screen bg-[var(--color-bg)] px-5 pt-[72px] pb-[96px] box-border flex flex-col relative overflow-x-hidden overflow-y-scroll [scrollbar-gutter:stable] shadow-2xl">
       {isMockMode && (
-        <div className="w-full bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.25)] rounded-2xl py-3 pl-5 pr-4 mb-4 flex items-center gap-3 shadow-sm transition-all duration-300 hover:border-[rgba(245,158,11,0.4)] shrink-0 animate-fade-in">
+        <div className="w-full bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.25)] rounded-2xl py-3 pl-5 pr-4 mt-12 mb-4 flex items-center gap-3 shadow-sm transition-all duration-300 hover:border-[rgba(245,158,11,0.4)] shrink-0 animate-fade-in">
           <div className="flex-shrink-0 w-9 h-9 rounded-full bg-[rgba(245,158,11,0.15)] flex items-center justify-center animate-pulse">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-amber-700">
               <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
