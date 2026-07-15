@@ -1,27 +1,15 @@
-// src/contexts/AuthContext.tsx
+// src/contexts/AuthProvider.tsx
 
-import { createContext, useContext, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
+import { AuthContext } from './AuthContext';
+// Antigravity 수정: TypeScript 컴파일 에러 해결을 위해 User 타입을 임포트합니다.
 import type { User } from '../api/types/auth';
 
-interface AuthState {
-  accessToken: string | null;
-  user: User | null;
-  isAuthSheetOpen: boolean;
-}
-
-interface AuthContextValue extends AuthState {
-  setAuth: (token: string | null, user: User | null) => void;
-  clearAuth: () => void;
-  openAuthSheet: () => void;
-  closeAuthSheet: () => void;
-}
-
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
-
 /**
- * 전역 인증 상태 Provider.
- * accessToken은 절대 localStorage에 저장하지 않고 이 메모리 상태에만 유지합니다.
+ * Antigravity 수정: Fast Refresh 경고 해결을 위해 분리된 AuthProvider 컴포넌트입니다.
+ * 전역 인증 상태를 공급(Provider)해주는 역할을 합니다.
+ * accessToken은 메모리 상태에만 유지합니다.
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [authState, setAuthState] = useState<{ accessToken: string | null; user: User | null }>({
@@ -46,12 +34,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuthContext() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuthContext must be used within an AuthProvider');
-  }
-  return context;
 }

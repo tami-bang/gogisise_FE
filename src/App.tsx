@@ -3,7 +3,8 @@ import { MainPage } from './pages/MainPage';
 import { AllPricesPage } from './pages/AllPricesPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { useSettings } from './hooks/useSettings';
-import { AuthProvider } from './contexts/AuthContext';
+// Antigravity 수정: Fast Refresh 경고 해결을 위해 분리된 AuthProvider를 불러옵니다.
+import { AuthProvider } from './contexts/AuthProvider';
 import { useInitializeAuth } from './hooks/useInitializeAuth';
 import { useAuth } from './hooks/useAuth';
 import { AuthBottomSheet } from './components/domain/auth/AuthBottomSheet';
