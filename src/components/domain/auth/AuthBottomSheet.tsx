@@ -55,7 +55,7 @@ export function AuthBottomSheet({ isOpen, onClose }: Props) {
         aria-labelledby="auth-bottom-sheet-title"
       >
           {/* Header */}
-          <div className="flex items-center justify-between p-5 border-b border-[var(--color-divider)]">
+          <div className="flex items-center justify-between py-3 px-5 border-b border-[var(--color-divider)]">
             <div className="flex items-center gap-3">
               {mode !== 'login' && (
                 <button 
@@ -82,7 +82,7 @@ export function AuthBottomSheet({ isOpen, onClose }: Props) {
           </div>
 
           {/* Content (스크롤 영역) */}
-          <div className="overflow-y-auto p-5 pb-10">
+          <div className="overflow-y-auto px-5 pt-3 pb-6">
             <div className="w-full">
               {mode === 'login' && (
                 <LoginForm 
