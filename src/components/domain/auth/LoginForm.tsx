@@ -142,7 +142,7 @@ export function LoginForm({ onSwitchToSignup, onSwitchToMagicLink, onSwitchToFin
             value={email}
             onChange={handleEmailChange}
             onBlur={handleEmailBlur}
-            disabled={isActuallyDisabled}
+            disabled={isLoading || isLocked}
             className={`h-14 px-4 rounded-[var(--radius-md)] border bg-[var(--color-surface)] text-body transition-colors focus:outline-none ${emailError ? 'border-[var(--color-error)] focus:border-[var(--color-error)]' : 'border-[var(--color-border)] focus:border-[var(--color-primary)]'}`}
             placeholder="example@domain.com"
           />
