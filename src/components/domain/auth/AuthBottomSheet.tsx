@@ -44,7 +44,6 @@ export function AuthBottomSheet({ isOpen, onClose }: Props) {
       {/* Backdrop (스크롤 차단 역할 포함) */}
       <div 
         className="fixed inset-0 bg-black/50 z-[99] transition-opacity" 
-        onClick={onClose}
         aria-hidden="true"
       />
       
