@@ -26,7 +26,7 @@ export function Header({ title = '고기시세', rightAction = null, onActionCli
           </button>
         )}
         {title === '고기시세' && !onBack && <span className="text-3xl" aria-hidden="true">🥩</span>}
-        <h1 className="text-title-xl text-[var(--text-strong)] tracking-tight truncate max-w-[150px]">
+        <h1 className="text-title-xl text-[var(--text-strong)] tracking-tight whitespace-nowrap">
           {title}
         </h1>
       </div>

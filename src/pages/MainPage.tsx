@@ -194,7 +194,7 @@ export function MainPage() {
 
   const headerTitle = appStep === 'select'
     ? '고기시세'
-    : `${animalType === 'BEEF' ? '소고기' : '돼지고기'} 즐겨찾기 시세 목록`;
+    : `${animalType === 'BEEF' ? '한우' : '한돈'} 즐겨찾기`;
   const rightAction = appStep === 'select' ? null : 'share';
 
   return (
@@ -231,10 +231,13 @@ export function MainPage() {
 
             {showTooltip && (
               <div className="mx-5 mb-6 bg-[var(--color-primary)] text-white text-body font-bold rounded-[var(--radius-md)] px-4 py-3 flex justify-between items-center shadow-soft animate-fade-in">
-                <span>소고기·돼지고기 카드를 눌러 시세를 전환할 수 있어요</span>
+                <span className="flex-1 min-w-0 pr-2">
+                  <span className="inline-block whitespace-nowrap">한우 · 한돈 카드를 눌러</span>{' '}
+                  <span className="inline-block whitespace-nowrap">시세를 전환할 수 있어요</span>
+                </span>
                 <button
                   onClick={() => setShowTooltip(false)}
-                  className="p-1 -mr-1 active:scale-95"
+                  className="p-1 -mr-1 active:scale-95 shrink-0"
                   aria-label="닫기"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -281,7 +284,7 @@ export function MainPage() {
 
               {listStatus === 'empty' && (
                 <EmptyState
-                  title={`${animalType === 'BEEF' ? '소고기' : '돼지고기'} ${storageType === 'CHILLED' ? '냉장' : '냉동'} 즐겨찾기가 없어요`}
+                  title={`${animalType === 'BEEF' ? '한우' : '한돈'} ${storageType === 'CHILLED' ? '냉장' : '냉동'} 즐겨찾기가 없어요`}
                   description="전체 시세에서 자주 확인하는 품목을 추가해 보세요"
                   actionLabel="전체 시세에서 품목 찾기"
                   onAction={handleNavigateToAll}
