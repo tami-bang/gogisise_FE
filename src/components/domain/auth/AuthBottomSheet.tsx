@@ -49,7 +49,7 @@ export function AuthBottomSheet({ isOpen, onClose }: Props) {
       
       {/* Bottom Sheet */}
       <div 
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md h-fit max-h-[85vh] bg-[var(--color-bg)] rounded-t-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.08)] z-[100] transition-transform duration-300 flex flex-col"
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md h-[calc(100dvh-72px)] bg-[var(--color-bg)] rounded-t-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.08)] z-[100] transition-transform duration-300 flex flex-col"
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-bottom-sheet-title"
