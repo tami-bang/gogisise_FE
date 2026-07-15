@@ -106,18 +106,18 @@ export function LoginForm({ onSwitchToSignup, onSwitchToMagicLink, onSwitchToFin
   const isActuallyDisabled = isLoading || isLocked || hasErrors;
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       {/* Logo & Title */}
-      <div className="flex flex-col items-center justify-center pt-0 pb-2 gap-1">
-        <div className="w-20 h-20 bg-[var(--color-primary)] rounded-full flex items-center justify-center text-white mb-1 shadow-sm transition-transform hover:scale-105">
+      <div className="flex flex-col items-center justify-center pt-0 pb-1 gap-0.5">
+        <div className="w-20 h-20 bg-[var(--color-primary)] rounded-full flex items-center justify-center text-white mb-0.5 shadow-sm transition-transform hover:scale-105">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
             <path d="M7 2v20" />
             <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
           </svg>
         </div>
-        <h3 className="text-title-lg font-bold text-[var(--color-primary)] leading-tight">도매 시세</h3>
-        <p className="text-caption text-[var(--text-muted)] text-center leading-normal">베테랑 사장님을 위한 실시간 고기 시세 서비스</p>
+        <h3 className="text-title-lg font-bold text-[var(--color-primary)] leading-none mt-1">도매 시세</h3>
+        <p className="text-caption text-[var(--text-muted)] text-center leading-none mt-1">베테랑 사장님을 위한 실시간 고기 시세 서비스</p>
       </div>
 
       {apiError && !isLocked && (
@@ -127,15 +127,15 @@ export function LoginForm({ onSwitchToSignup, onSwitchToMagicLink, onSwitchToFin
       )}
       
       {isLocked && (
-        <div className="bg-[#ffedea] text-[var(--color-error)] p-2.5 rounded-[var(--radius-md)] text-sm font-bold text-center">
+        <div className="bg-[#ffedea] text-[var(--color-error)] p-3 rounded-[var(--radius-md)] text-sm font-bold text-center">
           비밀번호 5회 오류로 로그인 잠금<br/>
           {lockRemainingSeconds}초 후 다시 시도해 주세요.
         </div>
       )}
 
       {/* Inputs */}
-      <div className="flex flex-col gap-2.5">
-        <div className="flex flex-col gap-0.5">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1">
           <label className="text-label text-[var(--text-strong)] font-bold">이메일</label>
           <input
             type="email"
@@ -143,13 +143,13 @@ export function LoginForm({ onSwitchToSignup, onSwitchToMagicLink, onSwitchToFin
             onChange={handleEmailChange}
             onBlur={handleEmailBlur}
             disabled={isLoading || isLocked}
-            className={`h-12 px-4 rounded-[var(--radius-md)] border bg-[var(--color-surface)] text-body transition-colors focus:outline-none ${emailError ? 'border-[var(--color-error)] focus:border-[var(--color-error)]' : 'border-[var(--color-border)] focus:border-[var(--color-primary)]'}`}
+            className={`h-14 px-4 rounded-[var(--radius-md)] border bg-[var(--color-surface)] text-body transition-colors focus:outline-none ${emailError ? 'border-[var(--color-error)] focus:border-[var(--color-error)]' : 'border-[var(--color-border)] focus:border-[var(--color-primary)]'}`}
             placeholder="example@domain.com"
           />
-          {emailError && <span className="text-xs text-red-500 mt-0.5">{emailError}</span>}
+          {emailError && <span className="text-xs text-red-500 mt-1">{emailError}</span>}
         </div>
 
-        <div className="flex flex-col gap-0.5">
+        <div className="flex flex-col gap-1">
           <label className="text-label text-[var(--text-strong)] font-bold">비밀번호</label>
           <div className="relative">
             <input
@@ -158,7 +158,7 @@ export function LoginForm({ onSwitchToSignup, onSwitchToMagicLink, onSwitchToFin
               onChange={handlePasswordChange}
               onBlur={handlePasswordBlur}
               disabled={isLoading || isLocked}
-              className={`w-full h-12 px-4 pr-12 rounded-[var(--radius-md)] border bg-[var(--color-surface)] text-body transition-colors focus:outline-none ${passwordError ? 'border-[var(--color-error)] focus:border-[var(--color-error)]' : 'border-[var(--color-border)] focus:border-[var(--color-primary)]'}`}
+              className={`w-full h-14 px-4 pr-12 rounded-[var(--radius-md)] border bg-[var(--color-surface)] text-body transition-colors focus:outline-none ${passwordError ? 'border-[var(--color-error)] focus:border-[var(--color-error)]' : 'border-[var(--color-border)] focus:border-[var(--color-primary)]'}`}
               placeholder="비밀번호를 입력하세요"
             />
             <button
@@ -174,8 +174,8 @@ export function LoginForm({ onSwitchToSignup, onSwitchToMagicLink, onSwitchToFin
               )}
             </button>
           </div>
-          {passwordError && <span className="text-xs text-[var(--color-error)] mt-0.5">{passwordError}</span>}
-          <div className="flex justify-center items-center mt-2 mb-1 gap-2 text-sm text-[var(--text-muted)]">
+          {passwordError && <span className="text-xs text-[var(--color-error)] mt-1">{passwordError}</span>}
+          <div className="flex justify-center items-center mt-3 mb-2 gap-2 text-sm text-[var(--text-muted)]">
             <button type="button" onClick={onSwitchToFindEmail} className="hover:underline">이메일을 찾고 싶어요</button>
             <span className="text-[var(--color-divider)]">|</span>
             <button type="button" onClick={onSwitchToMagicLink} className="hover:underline">비밀번호를 찾고 싶어요</button>
@@ -183,12 +183,12 @@ export function LoginForm({ onSwitchToSignup, onSwitchToMagicLink, onSwitchToFin
         </div>
       </div>
 
-      <div className="flex flex-col gap-2.5 mt-1">
+      <div className="flex flex-col gap-4 mt-2">
         <Button
           type="submit"
           variant={isActuallyDisabled ? 'disabled' : 'primary'}
           disabled={isActuallyDisabled}
-          className="h-12 text-[16px] font-bold"
+          className="h-14 text-[16px] font-bold"
         >
           {isLocked ? `${lockRemainingSeconds}초 후 다시 시도` : (isLoading ? '로그인 중...' : '로그인')}
         </Button>
@@ -207,8 +207,8 @@ export function LoginForm({ onSwitchToSignup, onSwitchToMagicLink, onSwitchToFin
       </div>
 
       {/* 간편 로그인 */}
-      <div className="mt-3 mb-0">
-        <div className="relative flex items-center justify-center mb-3">
+      <div className="mt-6 mb-2">
+        <div className="relative flex items-center justify-center mb-6">
           <div className="absolute w-full border-t border-[var(--color-divider)]"></div>
           <span className="bg-[var(--color-bg)] px-4 text-xs text-[var(--text-muted)] relative z-10">간편 로그인</span>
         </div>
@@ -216,7 +216,7 @@ export function LoginForm({ onSwitchToSignup, onSwitchToMagicLink, onSwitchToFin
           <button
             type="button"
             onClick={() => alert('준비 중입니다.')}
-            className="flex-1 h-11 bg-[#FEE500] text-[#000000] rounded-[var(--radius-md)] flex items-center justify-center font-bold text-sm active:scale-95 transition-transform shadow-sm"
+            className="flex-1 h-14 bg-[#FEE500] text-[#000000] rounded-[var(--radius-md)] flex items-center justify-center font-bold text-sm active:scale-95 transition-transform shadow-sm"
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 4C6.477 4 2 7.556 2 11.944C2 14.654 3.738 17.042 6.425 18.36L5.342 22.316C5.237 22.696 5.666 23.013 5.992 22.812L10.743 19.865C11.154 19.897 11.572 19.894 12 19.894C17.523 19.894 22 16.338 22 11.944C22 7.556 17.523 4 12 4Z" />
