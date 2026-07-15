@@ -20,11 +20,11 @@ export const PageLayout = ({ children }: PageLayoutProps) => {
           <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[rgba(245,158,11,0.15)] flex items-center justify-center text-amber-500 font-bold animate-pulse">
             ⚠️
           </div>
-          <div className="flex-1 flex flex-col gap-0.5">
+          <div className="flex-1 min-w-0 flex flex-col gap-0.5">
             <h4 className="text-sm font-semibold text-amber-700 leading-tight">
               임시 테스트 데이터 표시 중
             </h4>
-            <p className="text-xs text-amber-600 leading-normal">
+            <p className="text-xs text-amber-600 leading-normal break-all whitespace-normal">
               인터넷 연결이 원활하지 않아 가짜 시세 데이터(더미 데이터)를 임시로 띄운 화면입니다.
             </p>
           </div>
