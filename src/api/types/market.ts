@@ -96,12 +96,25 @@ export interface SourcePriceRecord {
   collectedAt: string;         // ISO 8601 수집 시각
   includedInAverage: boolean;  // 평균 산출에 포함됐는지 여부
   exclusionReason?: string;    // 제외 사유 (포함된 경우 undefined)
+  grade?: string | null;       // 등급 (예: "1++", "1+", "1")
+  brand?: string | null;       // 브랜드명
+}
+
+// 금천미트 원본 상품 단건 (바로가기용)
+export interface SourceItem {
+  itemId: string;
+  name: string;           // 상품명
+  grade: string | null;   // 등급
+  brand: string | null;   // 브랜드명
+  detailUrl: string;      // 금천미트 상품 상세 URL
+  price: number;          // 현재 가격
 }
 
 // 산출 세부 내역 응답 전체
 export interface AggregatedPriceDetail {
   itemId: string;
   displayName: string;          // 화면 표시명 (명세: displayName)
+  grade?: string | null;        // 해당 품목 등급
 
   // 가격 지표
   averagePrice: number;
@@ -114,6 +127,9 @@ export interface AggregatedPriceDetail {
 
   // 원본 매물 리스트
   sourceRecords: SourcePriceRecord[];
+
+  // 원본 MarketItem 리스트 (금천미트 바로가기용)
+  sourceItems?: SourceItem[];
 
   // FE 표시용 추가 필드 (서버 제공 or FE 계산)
   animalType: 'BEEF' | 'PORK';  // FE 즐겨찾기 등록 시 필요

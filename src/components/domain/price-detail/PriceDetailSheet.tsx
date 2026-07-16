@@ -169,7 +169,7 @@ export function PriceDetailSheet({
                   sourceRecordCount={detail.sourceRecords.length}
                   unit={detail.unit}
                 />
-                <SourceList records={detail.sourceRecords} />
+                <SourceList records={detail.sourceRecords} sourceItems={detail.sourceItems} />
               </>
             )}
 
