@@ -175,21 +175,32 @@ export function PriceDetailSheet({
 
             {status === 'success' && detail && (
               <div className="flex gap-[var(--spacing-12)] mt-auto pt-4 border-t border-[var(--color-divider)]">
-                <button
-                  onClick={onClose}
-                  className="flex-1 py-[var(--spacing-16)] rounded-[var(--radius-lg)] bg-[var(--color-surface-soft)] text-[var(--text-default)] font-bold text-label active:scale-[0.98] transition-transform"
-                >
-                  닫기
-                </button>
-                <button
-                  onClick={handleExecuteAction}
-                  disabled={isMutating}
-                  className={`flex-1 py-[var(--spacing-16)] rounded-[var(--radius-lg)] font-bold text-label text-white active:scale-[0.98] transition-transform ${
-                    isFav ? 'bg-[var(--color-disabled)] text-[var(--text-strong)]' : 'bg-[var(--color-secondary)]'
-                  }`}
-                >
-                  {isFav ? '즐겨찾기에서 제거' : '즐겨찾기에 추가'}
-                </button>
+                {itemId?.startsWith('path:') ? (
+                  <button
+                    onClick={onClose}
+                    className="w-full py-[var(--spacing-16)] rounded-[var(--radius-lg)] bg-[var(--color-surface-soft)] text-[var(--text-default)] font-bold text-label active:scale-[0.98] transition-transform"
+                  >
+                    닫기
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={onClose}
+                      className="flex-1 py-[var(--spacing-16)] rounded-[var(--radius-lg)] bg-[var(--color-surface-soft)] text-[var(--text-default)] font-bold text-label active:scale-[0.98] transition-transform"
+                    >
+                      닫기
+                    </button>
+                    <button
+                      onClick={handleExecuteAction}
+                      disabled={isMutating}
+                      className={`flex-1 py-[var(--spacing-16)] rounded-[var(--radius-lg)] font-bold text-label text-white active:scale-[0.98] transition-transform ${
+                        isFav ? 'bg-[var(--color-disabled)] text-[var(--text-strong)]' : 'bg-[var(--color-secondary)]'
+                      }`}
+                    >
+                      {isFav ? '즐겨찾기에서 제거' : '즐겨찾기에 추가'}
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>

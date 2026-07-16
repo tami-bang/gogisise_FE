@@ -399,6 +399,10 @@ export const marketService = {
     itemId: string,
     options?: MarketServiceRequestOptions
   ): Promise<AggregatedPriceDetail> => {
+    if (itemId.startsWith('path:')) {
+      const categoryPath = itemId.substring(5);
+      return await marketService.getCategoryCalculations(categoryPath, options);
+    }
     try {
       const detail = await apiClient.get<AggregatedPriceDetail>(
         `${MARKET_PATH}/items/${encodeURIComponent(itemId)}/calculations`,
@@ -472,5 +476,49 @@ export const marketService = {
       items: filtered.slice(startIndex, endIndex),
       hasNextPage: endIndex < filtered.length,
     };
+  },
+
+  getCategoryTree: async (
+    options?: MarketServiceRequestOptions & { depth?: number }
+  ): Promise<any[]> => {
+    let path = `${MARKET_PATH}/items/categories`;
+    if (options?.depth !== undefined) {
+      path += `?depth=${options.depth}`;
+    }
+    return await apiClient.get<any[]>(path, toApiOptions(options));
+  },
+
+  getCategoryCalculations: async (
+    categoryPath: string,
+    options?: MarketServiceRequestOptions
+  ): Promise<AggregatedPriceDetail> => {
+    try {
+      const detail = await apiClient.get<AggregatedPriceDetail>(
+        `${MARKET_PATH}/items/calculations?categoryPath=${encodeURIComponent(categoryPath)}`,
+        toApiOptions(options)
+      );
+      setMockModeFlag(false);
+      return normalizePriceDetail(detail);
+    } catch (error) {
+      console.warn(`[MarketService] API category calculations request failed for ${categoryPath}. falling back:`, error);
+      setMockModeFlag(true);
+      // Fallback
+      return {
+        itemId: `cat-${categoryPath}`,
+        displayName: categoryPath.split(' > ').pop() || '',
+        grade: null,
+        averagePrice: 120000,
+        changeAmount: 0,
+        trendStatus: 'UNCHANGED',
+        highestPrice: 130000,
+        lowestPrice: 110000,
+        participantCount: 5,
+        sourceRecords: [],
+        sourceItems: [],
+        animalType: categoryPath.includes('돈육') ? 'PORK' : 'BEEF',
+        storageType: categoryPath.includes('냉장') ? 'CHILLED' : 'FROZEN',
+        unit: '1kg',
+      };
+    }
   },
 };
