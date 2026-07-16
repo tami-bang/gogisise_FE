@@ -15,16 +15,16 @@ function AppContent() {
   useSettings();
   
   // 보안: 앱 부트스트랩 시 Silent Refresh 수행 (토큰 무실점 복구)
-  const { isInitializing } = useInitializeAuth();
+  // const { isInitializing } = useInitializeAuth();
   const { isAuthSheetOpen, closeAuthSheet } = useAuth();
 
-  if (isInitializing) {
-    return (
-      <div className="min-h-[100dvh] flex items-center justify-center bg-[var(--color-bg)]">
-        <div className="text-[var(--color-primary)] font-bold text-title animate-pulse">앱 초기화 중...</div>
-      </div>
-    );
-  }
+  // if (isInitializing) {
+  //   return (
+  //     <div className="min-h-[100dvh] flex items-center justify-center bg-[var(--color-bg)]">
+  //       <div className="text-[var(--color-primary)] font-bold text-title animate-pulse">앱 초기화 중...</div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <BrowserRouter>
