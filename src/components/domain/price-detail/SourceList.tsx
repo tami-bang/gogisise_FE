@@ -36,6 +36,11 @@ export function SourceList({ records, sourceItems }: SourceListProps) {
               <div className="flex flex-col gap-1">
                 <span className="text-body font-bold text-[var(--text-strong)]">
                   {record.sourceName || '-'}
+                  {record.grade && (
+                    <span className="ml-2 text-caption font-normal text-[var(--text-muted)]">
+                      ({record.grade}등급)
+                    </span>
+                  )}
                 </span>
                 <span className="text-caption text-[var(--text-muted)]">
                   {record.collectedAt ? new Date(record.collectedAt).toLocaleDateString() : '-'} 수집
