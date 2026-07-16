@@ -79,7 +79,7 @@ const normalizePriceDetail = (detail: AggregatedPriceDetail): AggregatedPriceDet
 
 const toApiOptions = (options?: MarketServiceRequestOptions): ApiRequestOptions => ({
   accessToken: options?.accessToken,
-  signal: options?.signal,
+  // signal: options?.signal, // AbortError 원천 차단을 위해 signal 연결 해제
 });
 
 const sumChanges = (items: PriceItem[], species: 'BEEF' | 'PORK') => {
