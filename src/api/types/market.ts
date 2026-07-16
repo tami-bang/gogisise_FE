@@ -114,7 +114,7 @@ export interface SourceItem {
 export interface AggregatedPriceDetail {
   itemId: string;
   displayName: string;          // 화면 표시명 (명세: displayName)
-  grade?: string | null;        // 해당 품목 등급
+  grade?: Grade | string | null; // 해당 품목 등급
 
   // 가격 지표
   averagePrice: number;
@@ -134,7 +134,6 @@ export interface AggregatedPriceDetail {
   // FE 표시용 추가 필드 (서버 제공 or FE 계산)
   animalType: 'BEEF' | 'PORK';  // FE 즐겨찾기 등록 시 필요
   storageType: 'CHILLED' | 'FROZEN';
-  grade?: Grade | null;
   unit: string;                  // "1kg"
 }
 
