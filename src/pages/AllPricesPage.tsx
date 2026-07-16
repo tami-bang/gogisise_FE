@@ -64,20 +64,23 @@ export function AllPricesPage() {
 
   // 대분류/보관상태 및 검색어 기반 필터링
   const filteredCategories = useMemo(() => {
-    const speciesPrefix = animalType === 'BEEF' ? '국내산 한우' : '국내산 돈육';
-    const storagePrefix = storageType === 'CHILLED' ? '냉장' : '냉동';
-
     return categories
       .filter((node) => {
         // 1. 해당 대분류 및 보관상태 매칭
-        const matchesSpecies = node.path.startsWith(speciesPrefix);
-        const matchesStorage = node.path.includes(`> ${storagePrefix} >`);
+        const isBeef = node.ctgNo.startsWith('13') || node.ctgNo.startsWith('14');
+        const isPork = node.ctgNo.startsWith('31');
+        const matchesSpecies = animalType === 'BEEF' ? isBeef : isPork;
+
+        const isChilled = node.ctgNo.startsWith('1301') || node.ctgNo.startsWith('1401') || node.ctgNo.startsWith('3101');
+        const isFrozen = node.ctgNo.startsWith('1302') || node.ctgNo.startsWith('1402') || node.ctgNo.startsWith('3102');
+        const matchesStorage = storageType === 'CHILLED' ? isChilled : isFrozen;
+
         return matchesSpecies && matchesStorage;
       })
       .map((node) => {
         // 2. 표시용 명칭 가공 (한우 암소일 경우 "(암소)" 꼬리표 부착)
         let displayName = node.name;
-        if (node.path.includes('국내산 한우 암소')) {
+        if (node.ctgNo.startsWith('1401') || node.ctgNo.startsWith('1402')) {
           displayName = `${node.name} (암소)`;
         }
         return {
