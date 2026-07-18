@@ -58,7 +58,11 @@ export const usePriceDetail = (
       });
       if (controller.signal.aborted) return;
 
-      if (!result || result.sourceRecords.length === 0) {
+      // 💡 한국어 주석: sourceRecords(집계데이터)가 없어도 sourceItems(크롤링 매물)가 있으면 성공으로 처리합니다.
+      const hasData =
+        (result?.sourceRecords?.length ?? 0) > 0 ||
+        (result?.sourceItems?.length ?? 0) > 0;
+      if (!result || !hasData) {
         setStatus('empty');
         setDetail(null);
       } else {
@@ -93,7 +97,11 @@ export const usePriceDetail = (
       })
       .then((result) => {
         if (controller.signal.aborted) return;
-        if (!result || result.sourceRecords.length === 0) {
+        // 💡 한국어 주석: sourceRecords(집계데이터)가 없어도 sourceItems(크롤링 매물)가 있으면 성공으로 처리합니다.
+        const hasData =
+          (result?.sourceRecords?.length ?? 0) > 0 ||
+          (result?.sourceItems?.length ?? 0) > 0;
+        if (!result || !hasData) {
           setStatus('empty');
           setDetail(null);
         } else {
