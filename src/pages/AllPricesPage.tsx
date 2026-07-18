@@ -95,15 +95,14 @@ export function AllPricesPage() {
         // API 노드 중 해당 이름과 매칭되는 노드를 탐색합니다.
         const matchedNode = apiFiltered.find((n) => n.name.trim() === name.trim());
         
-        let path = '';
+        // 📌 한국어 주석: 백엔드가 데이터 분석을 위해 매칭하는 표준 화살표( > ) 형태의 categoryPath 규격으로 결합 경로를 일괄 통일합니다.
+        const speciesPrefix = animalType === 'BEEF' ? '국내산 한우 > 국내산 한우 암소' : '국내산 돈육';
+        const storagePrefix = storageType === 'CHILLED' ? '냉장' : '냉동';
+        const path = `${speciesPrefix} > ${storagePrefix} > ${name}`;
+        
         let ctgNo = `virtual-${name}`;
         if (matchedNode) {
-          path = matchedNode.path;
           ctgNo = matchedNode.ctgNo;
-        } else {
-          const speciesPrefix = animalType === 'BEEF' ? '국내산 한우 > 국내산 한우 암소' : '국내산 돈육';
-          const storagePrefix = storageType === 'CHILLED' ? '냉장' : '냉동';
-          path = `${speciesPrefix} > ${storagePrefix} > ${name}`;
         }
 
         const displayName = animalType === 'BEEF' ? `${name} (암소)` : name;
