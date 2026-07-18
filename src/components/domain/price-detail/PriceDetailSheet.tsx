@@ -27,7 +27,6 @@ const extractWeight = (name: string): number | null => {
 // 3. 화면에서 사용할 상품 데이터의 타입 명세서(Interface)
 interface FormattedMarketItem {
   goodsNo: string;
-  brandName: string;
   grade: string;
   itemName: string;
   weight?: number;
@@ -57,7 +56,6 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
 
         return {
           goodsNo: si.itemId,
-          brandName: si.brand || '금천한우',
           grade: si.grade || extractGrade(si.name),
           itemName: si.name,
           weight: weight > 0 ? weight : undefined,
@@ -72,7 +70,6 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
       const itemName = record.rawProductName || record.sourceName;
       return {
         goodsNo: record.id,
-        brandName: record.brand || '금천한우',
         grade: record.grade || extractGrade(itemName),
         itemName,
         pricePerKg: record.price || 0,
@@ -209,15 +206,19 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
             {[0, 1].map((skeletonItem) => (
               <div
                 key={skeletonItem}
-                className="min-h-36 w-full bg-[var(--color-surface)] rounded-[var(--radius-xl)] border border-[var(--color-border)] shadow-soft p-[var(--spacing-20)] flex flex-col gap-[var(--spacing-12)]"
+                className="min-h-40 w-full bg-[var(--color-surface)] rounded-[var(--radius-xl)] border border-[var(--color-border)] shadow-soft p-[var(--spacing-16)]"
                 aria-hidden="true"
               >
-                <div className="flex gap-[var(--spacing-8)]">
-                  <div className="h-7 w-28 bg-[var(--color-surface-soft)] rounded-[var(--radius-sm)]" />
-                  <div className="h-7 w-12 bg-[var(--color-surface-soft)] rounded-[var(--radius-sm)]" />
+                <div className="grid grid-cols-3 gap-[var(--spacing-12)] pb-[var(--spacing-16)] border-b border-[var(--color-divider)]">
+                  <div className="h-10 bg-[var(--color-surface-soft)] rounded-[var(--radius-sm)]" />
+                  <div className="h-10 bg-[var(--color-surface-soft)] rounded-[var(--radius-sm)]" />
+                  <div className="h-10 bg-[var(--color-surface-soft)] rounded-[var(--radius-sm)]" />
                 </div>
-                <div className="h-6 w-3/4 bg-[var(--color-surface-soft)] rounded-[var(--radius-sm)]" />
-                <div className="h-14 w-full bg-[var(--color-surface-soft)] rounded-[var(--radius-lg)]" />
+                <div className="grid grid-cols-3 gap-[var(--spacing-12)] pt-[var(--spacing-16)]">
+                  <div className="h-10 bg-[var(--color-surface-soft)] rounded-[var(--radius-sm)]" />
+                  <div className="h-10 bg-[var(--color-surface-soft)] rounded-[var(--radius-sm)]" />
+                  <div className="h-10 bg-[var(--color-surface-soft)] rounded-[var(--radius-sm)]" />
+                </div>
               </div>
             ))}
           </div>
@@ -296,51 +297,39 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                   href={item.detailUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`block bg-white border border-gray-200 rounded-xl p-4 shadow-sm transition-all ${
-                    item.detailUrl ? 'hover:border-blue-500 hover:shadow-md cursor-pointer' : ''
+                  className={`block bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-xl)] p-[var(--spacing-16)] shadow-soft transition-all duration-200 ${
+                    item.detailUrl ? 'hover:border-[var(--color-secondary)] hover:shadow-medium cursor-pointer active:scale-[0.98]' : ''
                   }`}
                 >
-                  {/* 브랜드 및 등급 뱃지 */}
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex gap-1.5">
-                      <span className="bg-orange-50 text-orange-700 text-xs font-bold px-2 py-1 rounded border border-orange-100">
-                        {item.brandName}
-                      </span>
-                      <span className="bg-red-50 text-red-700 text-xs font-bold px-2 py-1 rounded border border-red-100">
-                        {item.grade}
-                      </span>
+                  {/* 1행: 상품명 | 등급 | 제조일/소비기한 */}
+                  <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(64px,0.65fr)_minmax(104px,1fr)] border-b border-[var(--color-divider)] pb-[var(--spacing-16)]">
+                    <div className="min-w-0 pr-[var(--spacing-12)]">
+                      <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">상품명</p>
+                      <p className="text-label text-[var(--text-strong)] break-words leading-snug">{item.itemName}</p>
                     </div>
-                    {item.detailUrl && (
-                      <span className="text-xs text-blue-600 font-bold">구매창 이동 ↗</span>
-                    )}
-                  </div>
-
-                  {/* 상품명 */}
-                  <h4 className="font-bold text-gray-900 text-[15px] mb-3 leading-snug">
-                    {item.itemName}
-                  </h4>
-
-                  {/* 상세 스펙 (중량) */}
-                  <div className="text-xs text-gray-600 mb-4 bg-gray-50 p-3 rounded-lg flex flex-col gap-1.5 border border-gray-100">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">총 중량</span>
-                      <span className="font-bold text-gray-800">
-                        {item.weight ? `${item.weight}kg` : '-'}
-                      </span>
+                    <div className="px-[var(--spacing-12)] border-x border-[var(--color-divider)]">
+                      <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">등급</p>
+                      <p className="text-label text-[var(--text-strong)]">{item.grade}</p>
+                    </div>
+                    <div className="pl-[var(--spacing-12)] text-right">
+                      <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">제조일/소비기한</p>
+                      <p className="text-label text-[var(--text-strong)]">- / -</p>
                     </div>
                   </div>
 
-                  {/* 가격 정보 (kg당 단가 & 최종 판매가) */}
-                  <div className="flex justify-between items-end border-t border-gray-100 pt-3 mt-1">
-                    <div>
-                      <p className="text-[11px] text-gray-500 mb-0.5">kg당 단가</p>
-                      <p className="font-bold text-gray-700 text-sm">
-                        {item.pricePerKg?.toLocaleString()}원
-                      </p>
+                  {/* 2행: kg당 단가 | 중량 | 판매가 */}
+                  <div className="grid grid-cols-3 pt-[var(--spacing-16)]">
+                    <div className="pr-[var(--spacing-12)]">
+                      <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">kg당 단가</p>
+                      <p className="text-label text-[var(--text-strong)]">{item.pricePerKg.toLocaleString()}원</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-[11px] text-gray-500 mb-0.5">최종 판매가</p>
-                      <p className="text-lg font-extrabold text-red-600">
+                    <div className="px-[var(--spacing-12)] border-x border-[var(--color-divider)] text-center">
+                      <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">중량</p>
+                      <p className="text-label text-[var(--text-strong)]">{item.weight ? `${item.weight}kg` : '-'}</p>
+                    </div>
+                    <div className="pl-[var(--spacing-12)] text-right">
+                      <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">판매가</p>
+                      <p className="text-label text-[var(--text-strong)]">
                         {item.totalPrice ? `${item.totalPrice.toLocaleString()}원` : '-'}
                       </p>
                     </div>
