@@ -135,7 +135,10 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
   }, [isOpen]);
 
   // 10. 현재 선택된 탭(등급)의 실시간 통계 계산
-  const currentItems = groupedItems[activeTab] || [];
+  const currentItems = useMemo(
+    () => groupedItems[activeTab] || [],
+    [activeTab, groupedItems]
+  );
   const stats = useMemo(() => {
     if (currentItems.length === 0) return { avg: 0, min: 0, max: 0, count: 0 };
     const prices = currentItems.map((item: FormattedMarketItem) => item.pricePerKg);
@@ -150,22 +153,31 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+    <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center px-[var(--spacing-20)]">
       {/* 배경 딤(Dim) 처리 및 클릭 시 닫기 */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        className="fixed inset-0 bg-black/50 backdrop-blur-[1px] transition-opacity duration-200"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* 바텀 시트 컨테이너 */}
       <div
         ref={sheetRef}
-        className="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl p-6 z-10 max-h-[90vh] overflow-y-auto transform transition-transform"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="price-detail-title"
+        className="relative z-10 w-full max-w-md max-h-[calc(100dvh-96px)] overflow-y-auto bg-[var(--color-surface)] rounded-t-[var(--radius-2xl)] sm:rounded-[var(--radius-2xl)] p-[var(--spacing-20)] shadow-medium transition-transform duration-200"
       >
         {/* 상단 헤더 및 닫기 버튼 */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-900">상세 시세 및 구매</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl font-bold">
+        <div className="flex justify-between items-center mb-[var(--spacing-16)]">
+          <h2 id="price-detail-title" className="text-title text-[var(--text-strong)]">상세 시세 및 구매</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="상세 시세 닫기"
+            className="w-12 h-12 -mr-2 flex items-center justify-center rounded-[var(--radius-full)] text-[var(--text-light)] text-title-xl active:scale-[0.98] hover:bg-[var(--color-surface-soft)] transition-all duration-200"
+          >
             ✕
           </button>
         </div>
@@ -174,12 +186,40 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
 
         {/* ① 로딩 중: 스켈레톤 UI (첫 번째 사진 대응) */}
         {(status === 'loading' || status === 'idle') && (
-          <div className="animate-pulse flex flex-col gap-4">
-            <div className="h-10 bg-gray-200 rounded-full w-3/4 mb-4"></div>
-            <div className="h-32 bg-gray-100 rounded-xl w-full mb-4"></div>
-            <div className="h-24 bg-gray-50 rounded-xl w-full border border-gray-100"></div>
-            <div className="h-24 bg-gray-50 rounded-xl w-full border border-gray-100"></div>
-            <div className="h-24 bg-gray-50 rounded-xl w-full border border-gray-100"></div>
+          <div className="animate-pulse flex flex-col gap-[var(--spacing-16)]" aria-busy="true" aria-live="polite">
+            <span className="sr-only">상세 시세를 불러오는 중입니다.</span>
+
+            <div className="flex gap-[var(--spacing-8)]" aria-hidden="true">
+              <div className="h-10 w-24 bg-[var(--color-surface-soft)] rounded-[var(--radius-full)]" />
+              <div className="h-10 w-24 bg-[var(--color-surface-soft)] rounded-[var(--radius-full)]" />
+              <div className="h-10 w-20 bg-[var(--color-surface-soft)] rounded-[var(--radius-full)]" />
+            </div>
+
+            <div className="h-48 w-full bg-[var(--color-surface-soft)] rounded-[var(--radius-xl)] border border-[var(--color-divider)] shadow-soft p-[var(--spacing-20)] flex flex-col items-center justify-center gap-[var(--spacing-12)]" aria-hidden="true">
+              <div className="h-5 w-36 bg-[var(--color-border)] rounded-[var(--radius-sm)]" />
+              <div className="h-10 w-44 bg-[var(--color-border)] rounded-[var(--radius-sm)]" />
+              <div className="h-px w-full bg-[var(--color-divider)]" />
+              <div className="flex w-full justify-around">
+                <div className="h-8 w-16 bg-[var(--color-border)] rounded-[var(--radius-sm)]" />
+                <div className="h-8 w-16 bg-[var(--color-border)] rounded-[var(--radius-sm)]" />
+                <div className="h-8 w-16 bg-[var(--color-border)] rounded-[var(--radius-sm)]" />
+              </div>
+            </div>
+
+            {[0, 1].map((skeletonItem) => (
+              <div
+                key={skeletonItem}
+                className="min-h-36 w-full bg-[var(--color-surface)] rounded-[var(--radius-xl)] border border-[var(--color-border)] shadow-soft p-[var(--spacing-20)] flex flex-col gap-[var(--spacing-12)]"
+                aria-hidden="true"
+              >
+                <div className="flex gap-[var(--spacing-8)]">
+                  <div className="h-7 w-28 bg-[var(--color-surface-soft)] rounded-[var(--radius-sm)]" />
+                  <div className="h-7 w-12 bg-[var(--color-surface-soft)] rounded-[var(--radius-sm)]" />
+                </div>
+                <div className="h-6 w-3/4 bg-[var(--color-surface-soft)] rounded-[var(--radius-sm)]" />
+                <div className="h-14 w-full bg-[var(--color-surface-soft)] rounded-[var(--radius-lg)]" />
+              </div>
+            ))}
           </div>
         )}
 
