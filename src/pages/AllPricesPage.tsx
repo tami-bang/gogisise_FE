@@ -66,21 +66,26 @@ export function AllPricesPage() {
   const filteredCategories = useMemo(() => {
     return categories
       .filter((node) => {
-        // 1. 해당 대분류 및 보관상태 매칭
-        const isBeef = node.ctgNo.startsWith('13') || node.ctgNo.startsWith('14');
-        const isPork = node.ctgNo.startsWith('31');
+        // 📌 한국어 주석: 하드코딩된 ctgNo 접두사 대신, 카테고리 경로명(path)을 기반으로 동물 분류 및 보관상태를 판별하여 누락을 방지합니다.
+        const path = node.path || '';
+        
+        // 1. 동물 대분류 판별 (한우 암소만 허용하므로 암소 필수 포함 / 돈육은 돈육 전체 포함)
+        const isBeef = path.includes('한우') && path.includes('암소');
+        const isPork = path.includes('돈육');
         const matchesSpecies = animalType === 'BEEF' ? isBeef : isPork;
 
-        const isChilled = node.ctgNo.startsWith('1301') || node.ctgNo.startsWith('1401') || node.ctgNo.startsWith('3101');
-        const isFrozen = node.ctgNo.startsWith('1302') || node.ctgNo.startsWith('1402') || node.ctgNo.startsWith('3102');
+        // 2. 보관 상태 판별 (냉장 / 냉동)
+        // 💡 주의: 카테고리 경로(path)에 "냉동"이 포함되어 있거나, 카테고리 명칭(node.name)에 "냉동"이 포함되면 냉동으로 판별합니다.
+        const isChilled = path.includes('냉장') && !path.includes('냉동') && !node.name.includes('냉동');
+        const isFrozen = path.includes('냉동') || node.name.includes('냉동');
         const matchesStorage = storageType === 'CHILLED' ? isChilled : isFrozen;
 
         return matchesSpecies && matchesStorage;
       })
       .map((node) => {
-        // 2. 표시용 명칭 가공 (한우 암소일 경우 "(암소)" 꼬리표 부착)
+        // 3. 표시용 명칭 가공 (한우 암소일 경우 "(암소)" 꼬리표 부착)
         let displayName = node.name;
-        if (node.ctgNo.startsWith('1401') || node.ctgNo.startsWith('1402')) {
+        if (node.path.includes('암소')) {
           displayName = `${node.name} (암소)`;
         }
         return {
@@ -88,8 +93,13 @@ export function AllPricesPage() {
           displayName,
         };
       })
+      .filter((item, index, self) => {
+        // 4. 동일한 displayName을 가진 부위명은 목록에서 중복제거(Unique) 처리합니다.
+        // 한국어 주석: 중복 노출을 방지하기 위해 중복 카테고리를 필터링합니다.
+        return self.findIndex((t) => t.displayName === item.displayName) === index;
+      })
       .filter((item) => {
-        // 3. 자음/모음 검색 지원
+        // 5. 자음/모음 검색 지원
         return matchesSearch(item.displayName, searchQuery);
       });
   }, [categories, animalType, storageType, searchQuery]);
