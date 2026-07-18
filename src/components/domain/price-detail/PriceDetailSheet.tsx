@@ -1,14 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePriceDetail } from '../../../hooks/usePriceDetail';
 import { useFavoriteMutation } from '../../../hooks/useFavoriteMutation';
-import { useFavoritePrices } from '../../../hooks/useFavoritePrices';
-import { useViewLog } from '../../../hooks/useViewLog';
-import { DetailHeader } from './DetailHeader';
-import { PriceSummaryCard } from './PriceSummaryCard';
-import { SourceList } from './SourceList';
-import { ConfirmDialog } from '../../common/ConfirmDialog';
-import { InlineError } from '../../common/InlineError';
 import { ListSkeleton } from '../../common/ListSkeleton';
+import { InlineError } from '../../common/InlineError';
 import { EmptyState } from '../../common/EmptyState';
 
 interface PriceDetailSheetProps {
@@ -18,205 +12,266 @@ interface PriceDetailSheetProps {
   onFavoriteRemoved?: () => void;
 }
 
-export function PriceDetailSheet({
-  isOpen,
-  itemId,
-  onClose,
-  onFavoriteRemoved,
-}: PriceDetailSheetProps) {
+// 1. 상품명에서 등급을 정확히 낚아채는 유틸리티 함수
+const extractGrade = (name: string) => {
+  if (name.includes('1++')) return '1++등급';
+  if (name.includes('1+')) return '1+등급';
+  if (name.includes('1등급') || name.match(/\b1\b/)) return '1등급';
+  return '기타'; 
+};
+
+// 2. 상품명에서 중량(kg)을 동적으로 낚아채는 정규식 유틸 함수
+const extractWeight = (name: string): number | null => {
+  const match = name.match(/(\d+(?:\.\d+)?)\s*kg/i);
+  return match ? parseFloat(match[1]) : null;
+};
+
+export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved }: PriceDetailSheetProps) {
   const { status, detail, refetch } = usePriceDetail(isOpen ? itemId : null);
-  useViewLog({ itemId, isOpen });
-  const { favoriteItemIds, refetch: refetchFavorites } = useFavoritePrices({
-    animalType: null,
-    storageType: 'CHILLED',
-    page: 1,
-    limit: 9999,
-  });
-  const { addFavorite, removeFavorite, isMutating } = useFavoriteMutation({
-    onSuccess: refetchFavorites,
-  });
-
-  const [confirmState, setConfirmState] = useState<'idle' | 'adding' | 'removing'>('idle');
+  const [activeTab, setActiveTab] = useState<string>('');
   const sheetRef = useRef<HTMLDivElement>(null);
-  const isFav = itemId ? favoriteItemIds.includes(itemId) : false;
 
+  // 3. API 응답 데이터(sourceItems)를 화면용 데이터 스펙으로 포맷팅 및 중량/총가격 산출
+  const items = useMemo(() => {
+    if (!detail || !detail.sourceItems) return [];
+    return detail.sourceItems.map((si) => {
+      const weight = extractWeight(si.name) || 0;
+      const pricePerKg = si.price || 0;
+      const totalPrice = weight > 0 ? Math.round(pricePerKg * weight) : 0;
+      
+      return {
+        goodsNo: si.itemId,
+        brandName: si.brand || '금천한우',
+        grade: si.grade || extractGrade(si.name),
+        itemName: si.name,
+        weight: weight > 0 ? weight : undefined,
+        pricePerKg,
+        totalPrice: totalPrice > 0 ? totalPrice : undefined,
+        detailUrl: si.detailUrl,
+      };
+    });
+  }, [detail]);
+
+  // 4. 원본 데이터를 등급별로 그룹화 및 탭 목록 생성
+  const { groupedItems, availableTabs } = useMemo(() => {
+    if (items.length === 0) return { groupedItems: {}, availableTabs: [] };
+
+    const groups: Record<string, typeof items> = {
+      '1++등급': [],
+      '1+등급': [],
+      '1등급': [],
+      '기타': []
+    };
+
+    items.forEach(item => {
+      const grade = extractGrade(item.itemName || '');
+      groups[grade].push(item);
+    });
+
+    const targetGrades = ['1++등급', '1+등급', '1등급'];
+    const tabs = targetGrades.filter(g => groups[g].length > 0);
+
+    if (tabs.length === 0 && groups['기타'].length > 0) {
+      tabs.push('전체');
+      groups['전체'] = groups['기타'];
+    }
+
+    return { groupedItems: groups, availableTabs: tabs };
+  }, [items]);
+
+  // 모달이 열리거나 데이터가 바뀔 때 첫 번째 탭 자동 선택
+  useEffect(() => {
+    if (availableTabs.length > 0 && !availableTabs.includes(activeTab)) {
+      setActiveTab(availableTabs[0]);
+    }
+  }, [availableTabs, activeTab]);
+
+  // ESC 키 누를 시 닫기 바인딩
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isOpen || confirmState !== 'idle') return;
+      if (!isOpen) return;
       if (e.key === 'Escape') {
         e.stopPropagation();
         onClose();
       }
     };
-
     if (isOpen) {
       window.addEventListener('keydown', handleKeyDown, true);
     }
-
     return () => {
       window.removeEventListener('keydown', handleKeyDown, true);
     };
-  }, [confirmState, isOpen, onClose]);
+  }, [isOpen, onClose]);
 
+  // 바텀 시트 열릴 시 스크롤 제어
   useEffect(() => {
-    if (isOpen || confirmState !== 'idle') {
+    if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
     }
-
     return () => {
       document.body.style.overflow = '';
     };
-  }, [confirmState, isOpen]);
+  }, [isOpen]);
 
-  if (!isOpen && confirmState === 'idle') return null;
+  // 5. 현재 선택된 탭(등급)의 실시간 통계 계산
+  const currentItems = groupedItems[activeTab] || [];
+  const stats = useMemo(() => {
+    if (currentItems.length === 0) return { avg: 0, min: 0, max: 0, count: 0 };
+    const prices = currentItems.map(item => item.pricePerKg); 
+    
+    return {
+      avg: Math.round(prices.reduce((a, b) => a + b, 0) / prices.length),
+      min: Math.min(...prices),
+      max: Math.max(...prices),
+      count: currentItems.length
+    };
+  }, [currentItems]);
 
-  const handleExecuteAction = () => {
-    setConfirmState(isFav ? 'removing' : 'adding');
-  };
-
-  const handleConfirmAction = async () => {
-    if (!detail) {
-      setConfirmState('idle');
-      return;
-    }
-
-    if (confirmState === 'adding') {
-      const success = await addFavorite({
-        itemId: detail.itemId,
-        animalType: detail.animalType,
-        storageType: detail.storageType,
-      });
-      if (!success) {
-        setConfirmState('idle');
-        return;
-      }
-    }
-
-    if (confirmState === 'removing') {
-      const success = await removeFavorite(detail.itemId);
-      if (!success) {
-        setConfirmState('idle');
-        return;
-      }
-      onFavoriteRemoved?.();
-    }
-
-    setConfirmState('idle');
-    onClose();
-  };
-
-  const isSheetInert = confirmState !== 'idle';
+  if (!isOpen) return null;
 
   return (
-    <>
-      <div
-        className={`fixed inset-0 z-[90] bg-black/50 transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-        onClick={(e) => {
-          if (confirmState === 'idle' && e.target === e.currentTarget) onClose();
-        }}
-        // @ts-ignore
-        inert={isSheetInert ? '' : undefined}
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+      {/* 배경 딤(Dim) 처리 및 클릭 시 닫기 */}
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" 
+        onClick={onClose}
       />
-
-      <div
-        className={`fixed inset-0 z-[100] flex justify-center items-end pointer-events-none ${isOpen ? '' : 'pointer-events-none'}`}
-        // @ts-ignore
-        inert={isSheetInert ? '' : undefined}
+      
+      {/* 바텀 시트 컨테이너 */}
+      <div 
+        ref={sheetRef}
+        className="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl p-6 z-10 max-h-[90vh] overflow-y-auto transform transition-transform"
       >
-        <div
-          ref={sheetRef}
-          role="dialog"
-          aria-modal="true"
-          className={`relative w-full max-w-md max-h-[88dvh] pointer-events-auto bg-[var(--color-surface)] rounded-t-[var(--radius-2xl)] flex flex-col transform transition-transform duration-300 shadow-[var(--shadow-modal)] ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}
-          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-        >
-          <div className="flex justify-center py-3 flex-shrink-0">
-            <div className="w-12 h-1.5 bg-[var(--color-disabled)] rounded-full" />
-          </div>
-
-          <div className="flex-1 overflow-y-auto px-[var(--spacing-20)] pb-[var(--spacing-32)] flex flex-col gap-[var(--spacing-32)]">
-            {status === 'loading' && (
-              <div className="pt-4"><ListSkeleton count={4} /></div>
-            )}
-
-            {status === 'error' && (
-              <div className="pt-8">
-                <InlineError message="평균 산출 정보를 불러오지 못했습니다. 다시 시도해 주세요." onRetry={refetch} />
-              </div>
-            )}
-
-            {status === 'empty' && (
-              <div className="pt-8">
-                <EmptyState
-                  title="상세 정보가 아직 준비되지 않았습니다."
-                  description="잠시 후 다시 시도해 주세요."
-                />
-              </div>
-            )}
-
-            {status === 'success' && detail && (
-              <>
-                <DetailHeader fullDisplayName={detail.displayName} />
-                <PriceSummaryCard
-                  averagePrice={detail.averagePrice}
-                  changeAmount={detail.changeAmount}
-                  trendStatus={detail.trendStatus}
-                  lowestPrice={detail.lowestPrice}
-                  highestPrice={detail.highestPrice}
-                  participantCount={detail.participantCount}
-                  sourceRecordCount={detail.sourceRecords.length}
-                  unit={detail.unit}
-                />
-                <SourceList records={detail.sourceRecords} sourceItems={detail.sourceItems} />
-              </>
-            )}
-
-            {status === 'success' && detail && (
-              <div className="flex gap-[var(--spacing-12)] mt-auto pt-4 border-t border-[var(--color-divider)]">
-                {itemId?.startsWith('path:') ? (
-                  <button
-                    onClick={onClose}
-                    className="w-full py-[var(--spacing-16)] rounded-[var(--radius-lg)] bg-[var(--color-surface-soft)] text-[var(--text-default)] font-bold text-label active:scale-[0.98] transition-transform"
-                  >
-                    닫기
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={onClose}
-                      className="flex-1 py-[var(--spacing-16)] rounded-[var(--radius-lg)] bg-[var(--color-surface-soft)] text-[var(--text-default)] font-bold text-label active:scale-[0.98] transition-transform"
-                    >
-                      닫기
-                    </button>
-                    <button
-                      onClick={handleExecuteAction}
-                      disabled={isMutating}
-                      className={`flex-1 py-[var(--spacing-16)] rounded-[var(--radius-lg)] font-bold text-label text-white active:scale-[0.98] transition-transform ${
-                        isFav ? 'bg-[var(--color-disabled)] text-[var(--text-strong)]' : 'bg-[var(--color-secondary)]'
-                      }`}
-                    >
-                      {isFav ? '즐겨찾기에서 제거' : '즐겨찾기에 추가'}
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
+        {/* 상단 헤더 및 닫기 버튼 */}
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-gray-900">상세 시세 및 구매</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            ✕
+          </button>
         </div>
-      </div>
 
-      <ConfirmDialog
-        isOpen={confirmState !== 'idle'}
-        title={confirmState === 'adding' ? '즐겨찾기에 추가' : '즐겨찾기에서 제거'}
-        message={`해당 ${detail?.displayName || '품목'}을 즐겨찾기에서 ${confirmState === 'adding' ? '추가' : '제거'}하시겠습니까?`}
-        confirmText="예"
-        cancelText="아니오"
-        isDestructive={confirmState === 'removing'}
-        onConfirm={handleConfirmAction}
-        onCancel={() => setConfirmState('idle')}
-      />
-    </>
+        {status === 'loading' && (
+          <div className="pt-4"><ListSkeleton count={4} /></div>
+        )}
+
+        {status === 'error' && (
+          <div className="pt-8">
+            <InlineError message="평균 산출 정보를 불러오지 못했습니다. 다시 시도해 주세요." onRetry={refetch} />
+          </div>
+        )}
+
+        {status === 'empty' && (
+          <div className="pt-8">
+            <EmptyState
+              title="상세 정보가 아직 준비되지 않았습니다."
+              description="잠시 후 다시 시도해 주세요."
+            />
+          </div>
+        )}
+
+        {status === 'success' && items.length > 0 && (
+          <>
+            {/* UI 렌더링: 상단 탭 버튼 영역 */}
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
+              {availableTabs.map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-2 rounded-full whitespace-nowrap font-bold transition-colors ${
+                    activeTab === tab 
+                      ? 'bg-[var(--color-primary)] text-white' 
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  }`}
+                >
+                  {tab} <span className="text-sm font-normal opacity-80">({groupedItems[tab]?.length}건)</span>
+                </button>
+              ))}
+            </div>
+
+            {/* UI 렌더링: 선택된 등급 전용 평균가 요약 카드 */}
+            <div className="bg-gray-50 rounded-xl p-6 mb-6 text-center">
+              <p className="text-gray-500 mb-2">{activeTab} 평균 시세 (1kg)</p>
+              <h2 className="text-3xl font-extrabold text-gray-900">
+                {stats.avg.toLocaleString()}원
+              </h2>
+              
+              <div className="flex justify-between border-t border-gray-200 mt-4 pt-4 text-sm">
+                <div className="text-left flex-1">
+                  <p className="text-gray-400">최저가</p>
+                  <p className="text-blue-500 font-bold">{stats.min.toLocaleString()}원</p>
+                </div>
+                <div className="text-center border-x border-gray-200 px-4 flex-1">
+                  <p className="text-gray-400">최고가</p>
+                  <p className="text-red-500 font-bold">{stats.max.toLocaleString()}원</p>
+                </div>
+                <div className="text-right flex-1">
+                  <p className="text-gray-400">산출 업체</p>
+                  <p className="text-gray-700 font-bold">{stats.count}곳</p>
+                </div>
+              </div>
+            </div>
+
+            {/* UI 렌더링: 선택된 등급의 상세 상품 카드 리스트 및 링크 연결 */}
+            <div className="flex flex-col gap-4 pb-8">
+              {currentItems.map((item, idx) => (
+                <a
+                  key={idx}
+                  href={item.detailUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:border-blue-500 hover:shadow-md transition-all cursor-pointer"
+                >
+                  {/* 브랜드 및 등급 뱃지 */}
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex gap-1.5">
+                      <span className="bg-orange-50 text-orange-700 text-xs font-bold px-2 py-1 rounded border border-orange-100">
+                        {item.brandName}
+                      </span>
+                      <span className="bg-red-50 text-red-700 text-xs font-bold px-2 py-1 rounded border border-red-100">
+                        {item.grade}
+                      </span>
+                    </div>
+                    <span className="text-xs text-blue-600 font-bold flex items-center gap-1">
+                      구매창 이동 ↗
+                    </span>
+                  </div>
+
+                  {/* 상품명 */}
+                  <h4 className="font-bold text-gray-900 text-[15px] mb-3 leading-snug">
+                    {item.itemName}
+                  </h4>
+
+                  {/* 상세 스펙 (중량) */}
+                  <div className="text-xs text-gray-600 mb-4 bg-gray-50 p-3 rounded-lg flex flex-col gap-1.5 border border-gray-100">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">총 중량</span>
+                      <span className="font-bold text-gray-800">{item.weight ? `${item.weight}kg` : '-'}</span>
+                    </div>
+                  </div>
+
+                  {/* 가격 정보 (kg당 단가 & 최종 판매가) */}
+                  <div className="flex justify-between items-end border-t border-gray-100 pt-3 mt-1">
+                    <div>
+                      <p className="text-[11px] text-gray-500 mb-0.5">kg당 단가</p>
+                      <p className="font-bold text-gray-700 text-sm">
+                        {item.pricePerKg?.toLocaleString()}원
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[11px] text-gray-500 mb-0.5">최종 판매가</p>
+                      <p className="text-lg font-extrabold text-red-600">
+                        {item.totalPrice ? `${item.totalPrice.toLocaleString()}원` : '-'}
+                      </p>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
