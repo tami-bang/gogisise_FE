@@ -105,7 +105,7 @@ export function AllPricesPage() {
           ctgNo = matchedNode.ctgNo;
         }
 
-        const displayName = animalType === 'BEEF' ? `${name} (암소)` : name;
+        const displayName = name;
 
         return {
           ctgNo,
