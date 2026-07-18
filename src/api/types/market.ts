@@ -108,6 +108,11 @@ export interface SourceItem {
   brand: string | null;   // 브랜드명
   detailUrl: string;      // 금천미트 상품 상세 URL
   price: number;          // 현재 가격
+  ageInMonths?: number | null;
+  manufacturedAt?: string | null;
+  expiresAt?: string | null;
+  weightKg?: number | null;
+  salePrice?: number | null;
 }
 
 // 산출 세부 내역 응답 전체

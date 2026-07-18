@@ -32,8 +32,30 @@ interface FormattedMarketItem {
   weight?: number;
   pricePerKg: number;
   totalPrice?: number;
+  ageInMonths?: number | null;
+  manufacturedAt?: string | null;
+  expiresAt?: string | null;
   detailUrl?: string;
 }
+
+type SortOption =
+  | 'PRICE_PER_KG_ASC'
+  | 'PRICE_PER_KG_DESC'
+  | 'AGE_ASC'
+  | 'AGE_DESC'
+  | 'TOTAL_PRICE_ASC'
+  | 'TOTAL_PRICE_DESC';
+
+const GRADE_TABS = ['1++등급', '1+등급', '1등급'] as const;
+
+const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
+  { value: 'PRICE_PER_KG_ASC', label: 'kg당 단가 낮은 순' },
+  { value: 'PRICE_PER_KG_DESC', label: 'kg당 단가 높은 순' },
+  { value: 'AGE_ASC', label: '월령 낮은 순' },
+  { value: 'AGE_DESC', label: '월령 높은 순 (최대 40개월)' },
+  { value: 'TOTAL_PRICE_ASC', label: '판매가 낮은 순' },
+  { value: 'TOTAL_PRICE_DESC', label: '판매가 높은 순' },
+];
 
 export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _onFavoriteRemoved }: PriceDetailSheetProps) {
   // 4. 💡 핵심: 실제로 백엔드 API에서 데이터를 가져오는 훅 연결
@@ -42,7 +64,8 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
   const sourceItems = useMemo(() => detail?.sourceItems ?? [], [detail]);
   const sourceRecords = useMemo(() => detail?.sourceRecords ?? [], [detail]);
 
-  const [activeTab, setActiveTab] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<string>(GRADE_TABS[0]);
+  const [sortOption, setSortOption] = useState<SortOption>('PRICE_PER_KG_ASC');
   const sheetRef = useRef<HTMLDivElement>(null);
 
   // 5. API 응답(detail.sourceItems)을 화면 렌더링용 규격으로 변환 + 중량/최종가 산출
@@ -50,17 +73,20 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
   const items = useMemo<FormattedMarketItem[]>(() => {
     if (sourceItems.length > 0) {
       return sourceItems.map((si) => {
-        const weight = extractWeight(si.name) || 0;
+        const weight = si.weightKg || extractWeight(si.name) || 0;
         const pricePerKg = si.price || 0;
-        const totalPrice = weight > 0 ? Math.round(pricePerKg * weight) : 0;
+        const totalPrice = si.salePrice || (weight > 0 ? Math.round(pricePerKg * weight) : 0);
 
         return {
           goodsNo: si.itemId,
-          grade: si.grade || extractGrade(si.name),
+          grade: extractGrade(si.grade || si.name),
           itemName: si.name,
           weight: weight > 0 ? weight : undefined,
           pricePerKg,
           totalPrice: totalPrice > 0 ? totalPrice : undefined,
+          ageInMonths: si.ageInMonths,
+          manufacturedAt: si.manufacturedAt,
+          expiresAt: si.expiresAt,
           detailUrl: si.detailUrl,
         };
       });
@@ -70,47 +96,29 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
       const itemName = record.rawProductName || record.sourceName;
       return {
         goodsNo: record.id,
-        grade: record.grade || extractGrade(itemName),
+        grade: extractGrade(record.grade || itemName),
         itemName,
         pricePerKg: record.price || 0,
+        ageInMonths: record.ageInMonths,
       };
     });
   }, [sourceItems, sourceRecords]);
 
   // 6. 변환된 items를 등급별(1++, 1+, 1등급)로 그룹화 및 탭 목록 생성
-  const { groupedItems, availableTabs } = useMemo(() => {
-    if (items.length === 0) return { groupedItems: {}, availableTabs: [] };
-
+  const groupedItems = useMemo(() => {
     const groups: Record<string, FormattedMarketItem[]> = {
       '1++등급': [],
       '1+등급': [],
       '1등급': [],
-      '기타': [],
     };
 
     items.forEach((item: FormattedMarketItem) => {
-      const grade = extractGrade(item.itemName || '');
-      groups[grade].push(item);
+      const grade = item.grade.endsWith('등급') ? item.grade : `${item.grade}등급`;
+      if (grade in groups) groups[grade].push(item);
     });
 
-    const targetGrades = ['1++등급', '1+등급', '1등급'];
-    const tabs = targetGrades.filter(g => groups[g].length > 0);
-
-    // 등급 구분이 없는 경우(예: 돼지고기) '전체' 탭으로 폴백
-    if (tabs.length === 0 && groups['기타'].length > 0) {
-      tabs.push('전체');
-      groups['전체'] = groups['기타'];
-    }
-
-    return { groupedItems: groups, availableTabs: tabs };
+    return groups;
   }, [items]);
-
-  // 7. 데이터 로드 완료 시 첫 번째 탭 자동 선택
-  useEffect(() => {
-    if (availableTabs.length > 0 && !availableTabs.includes(activeTab)) {
-      setActiveTab(availableTabs[0]);
-    }
-  }, [availableTabs, activeTab]);
 
   // 8. ESC 키 → 닫기 바인딩
   useEffect(() => {
@@ -132,10 +140,28 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
   }, [isOpen]);
 
   // 10. 현재 선택된 탭(등급)의 실시간 통계 계산
-  const currentItems = useMemo(
-    () => groupedItems[activeTab] || [],
-    [activeTab, groupedItems]
-  );
+  const currentItems = useMemo(() => {
+    const gradeItems = groupedItems[activeTab] || [];
+    const sortableItems = sortOption === 'AGE_DESC'
+      ? gradeItems.filter((item) => item.ageInMonths == null || item.ageInMonths <= 40)
+      : gradeItems;
+
+    const valueFor = (item: FormattedMarketItem): number | null => {
+      if (sortOption.startsWith('PRICE_PER_KG')) return item.pricePerKg || null;
+      if (sortOption.startsWith('AGE')) return item.ageInMonths ?? null;
+      return item.totalPrice ?? null;
+    };
+    const direction = sortOption.endsWith('ASC') ? 1 : -1;
+
+    return [...sortableItems].sort((a, b) => {
+      const aValue = valueFor(a);
+      const bValue = valueFor(b);
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return 1;
+      if (bValue == null) return -1;
+      return (aValue - bValue) * direction;
+    });
+  }, [activeTab, groupedItems, sortOption]);
   const stats = useMemo(() => {
     if (currentItems.length === 0) return { avg: 0, min: 0, max: 0, count: 0 };
     const prices = currentItems.map((item: FormattedMarketItem) => item.pricePerKg);
@@ -251,7 +277,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
           <>
             {/* 상단 등급 탭 버튼 */}
             <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
-              {availableTabs.map((tab: string) => (
+              {GRADE_TABS.map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -265,6 +291,20 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                   <span className="text-sm font-normal opacity-80">({groupedItems[tab]?.length}건)</span>
                 </button>
               ))}
+            </div>
+
+            <div className="mb-[var(--spacing-16)]">
+              <label htmlFor="price-detail-sort" className="sr-only">상세 매물 정렬</label>
+              <select
+                id="price-detail-sort"
+                value={sortOption}
+                onChange={(event) => setSortOption(event.target.value as SortOption)}
+                className="w-full min-h-12 px-[var(--spacing-16)] bg-[var(--color-surface-soft)] border border-[var(--color-border)] rounded-[var(--radius-lg)] text-body text-[var(--text-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              >
+                {SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
             </div>
 
             {/* 선택된 등급의 평균가 요약 카드 */}
@@ -313,7 +353,9 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                     </div>
                     <div className="pl-[var(--spacing-12)] text-right">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">제조일/소비기한</p>
-                      <p className="text-label text-[var(--text-strong)]">- / -</p>
+                      <p className="text-label text-[var(--text-strong)]">
+                        {item.manufacturedAt || '-'} / {item.expiresAt || '-'}
+                      </p>
                     </div>
                   </div>
 
