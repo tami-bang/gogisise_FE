@@ -40,6 +40,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
   // 4. 💡 핵심: 실제로 백엔드 API에서 데이터를 가져오는 훅 연결
   // status: 'idle' | 'loading' | 'success' | 'empty' | 'error' 중 하나를 가집니다.
   const { status, detail, refetch } = usePriceDetail(isOpen ? itemId : null);
+  const sourceItems = useMemo(() => detail?.sourceItems ?? [], [detail]);
 
   const [activeTab, setActiveTab] = useState<string>('');
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -47,8 +48,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
   // 5. API 응답(detail.sourceItems)을 화면 렌더링용 규격으로 변환 + 중량/최종가 산출
   // 💡 useMemo: 데이터가 바뀔 때만 재계산하는 성능 최적화 훅. 계산기가 입력값이 같으면 다시 계산 안 하는 것과 같습니다.
   const items = useMemo<FormattedMarketItem[]>(() => {
-    if (!detail || !detail.sourceItems) return [];
-    return detail.sourceItems.map((si) => {
+    return sourceItems.map((si) => {
       const weight = extractWeight(si.name) || 0;
       const pricePerKg = si.price || 0;
       const totalPrice = weight > 0 ? Math.round(pricePerKg * weight) : 0;
@@ -64,7 +64,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
         detailUrl: si.detailUrl,
       };
     });
-  }, [detail]);
+  }, [sourceItems]);
 
   // 6. 변환된 items를 등급별(1++, 1+, 1등급)로 그룹화 및 탭 목록 생성
   const { groupedItems, availableTabs } = useMemo(() => {

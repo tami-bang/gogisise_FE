@@ -69,6 +69,25 @@ const toApiClientError = (response: Response, body: unknown): ApiClientError => 
   });
 };
 
+/**
+ * API success envelopes are transport details and must not leak into services.
+ *
+ * Normally the body is `{ success: true, data: T }`. The loop also protects
+ * callers from a response that has accidentally been wrapped more than once.
+ */
+const unwrapApiResponse = <T>(response: Response, body: unknown): T => {
+  let payload = body;
+
+  while (isApiResponse<unknown>(payload)) {
+    if (!payload.success) {
+      throw toApiClientError(response, payload);
+    }
+    payload = payload.data;
+  }
+
+  return payload as T;
+};
+
 const request = async <T>(
   method: string,
   path: string,
@@ -94,14 +113,7 @@ const request = async <T>(
     throw toApiClientError(response, parsedBody);
   }
 
-  if (isApiResponse<T>(parsedBody)) {
-    if (!parsedBody.success) {
-      throw toApiClientError(response, parsedBody);
-    }
-    return parsedBody.data;
-  }
-
-  return parsedBody as T;
+  return unwrapApiResponse<T>(response, parsedBody);
 };
 
 export const apiClient = {
