@@ -24,6 +24,14 @@ interface CategoryNode {
   path: string;
 }
 
+// 📌 한국어 주석: 사용자가 지정한 136개 카테고리 마스터 딕셔너리
+const CATEGORY_MASTER = {
+  HANWOO_CHILLED: ["안심", "등심", "윗등심", "채끝", "아랫등심", "목심", "앞다리살(앞다리+꾸리)", "앞다리살", "꾸리살", "부채살", "우둔(홍두깨포함)", "우둔살", "홍두깨", "설도(삼각살 X)", "설도", "설깃", "양지머리,치마양지", "양지머리외", "삼각살", "차돌양지", "치마살", "차돌박이(냉장)", "업진살", "앞치마살,업진안살", "앞치마살", "업진안살", "사태", "갈비", "갈비살", "안창살", "갈비본살+갈비살치", "토시살", "토시,제비추리", "늑간살", "제비추리", "안창외2종"],
+  HANWOO_FROZEN: ["차돌박이", "우족", "사골", "꼬리반골", "알꼬리", "잡뼈", "냉동설깃", "냉동우둔", "잡육", "도가니", "스지", "냉동목심", "냉동앞다리", "냉동설도", "냉동양지머리외", "냉동양지머리, 치마양지", "냉동사태", "냉동갈비"],
+  HANDON_CHILLED: ["더좋은삼겹", "더좋은삼겹(암)", "더좋은미박삼겹", "더좋은미박삼겹(암)", "두판삼겹", "A원삼겹", "삼겹", "삼겹(암)", "미박삼겹", "미박삼겹(암)", "목심", "미박목심", "목심(암)", "앞다리", "미박앞다리", "앞다리(암)", "미박앞다리(암)", "뒷다리", "미박뒷다리", "등심", "지방등심", "mm등심", "안심", "안심S", "갈비", "등갈비", "항정", "등심덧살", "갈매기", "삼겹(수육용)", "미박삼겹(수육용)", "목심(수육용)", "삼겹미추리", "미박앞사태", "미박뒷사태", "사태", "미박사태", "미사태", "미박삼겹(흑)", "미박목심(흑)", "미박앞다리(흑)", "등심(흑)", "안심(흑)", "미박뒷다리(흑)", "항정(흑)", "등심덧살(흑)", "갈매기(흑)"],
+  HANDON_FROZEN: ["냉동롤삼겹(꽃삼겹)", "냉동삼겹", "냉동미박삼겹", "냉동목심", "냉동뒷다리", "냉동목심(수육용)", "냉동앞다리", "냉동미박앞다리", "냉동미박뒷다리", "냉동등심", "냉동안심", "냉동갈비", "냉동등갈비", "냉동항정", "냉동갈매기", "냉동등심덧살", "냉동잡육A", "냉동등뼈", "냉동돈피", "냉동앞장족", "냉동뒷장족", "냉동미박사태", "냉동미박앞사태", "냉동미박뒷사태", "냉동앞미니족", "냉동뒷미니족", "냉동사태", "냉동꼬리살", "냉동뒷고기", "냉동두항정", "냉동볼살+혀밑살", "냉동덜미살", "냉동막창", "전지연골", "냉동돈두롤"]
+};
+
 export function AllPricesPage() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -62,47 +70,57 @@ export function AllPricesPage() {
     fetchCategoryTree();
   }, []);
 
+  // 📌 한국어 주석: 현재 선택된 축종/보관상태 탭에 따른 마스터 부위 배열을 확보합니다.
+  const targetMasterList = useMemo(() => {
+    if (animalType === 'BEEF' && storageType === 'CHILLED') return CATEGORY_MASTER.HANWOO_CHILLED;
+    if (animalType === 'BEEF' && storageType === 'FROZEN') return CATEGORY_MASTER.HANWOO_FROZEN;
+    if (animalType === 'PORK' && storageType === 'CHILLED') return CATEGORY_MASTER.HANDON_CHILLED;
+    return CATEGORY_MASTER.HANDON_FROZEN;
+  }, [animalType, storageType]);
+
   // 대분류/보관상태 및 검색어 기반 필터링
   const filteredCategories = useMemo(() => {
-    return categories
-      .filter((node) => {
-        // 📌 한국어 주석: 하드코딩된 ctgNo 접두사 대신, 카테고리 경로명(path)을 기반으로 동물 분류 및 보관상태를 판별하여 누락을 방지합니다.
-        const path = node.path || '';
+    // 1. 현재 대분류(한우 암소 / 돈육)에 매칭되는 API 노드들만 일차적으로 분류합니다.
+    const apiFiltered = categories.filter((node) => {
+      const path = node.path || '';
+      const isBeef = path.includes('한우') && path.includes('암소');
+      const isPork = path.includes('돈육');
+      return animalType === 'BEEF' ? isBeef : isPork;
+    });
+
+    // 2. 마스터 딕셔너리에 명시된 136개 표준 순서를 기준으로 카드 목록을 조립합니다.
+    // 한국어 주석: 매물이 0개인 것도 UI 뼈대를 그려내기 위해 매핑 처리를 가합니다.
+    return targetMasterList
+      .map((name) => {
+        // API 노드 중 해당 이름과 매칭되는 노드를 탐색합니다.
+        const matchedNode = apiFiltered.find((n) => n.name.trim() === name.trim());
         
-        // 1. 동물 대분류 판별 (한우 암소만 허용하므로 암소 필수 포함 / 돈육은 돈육 전체 포함)
-        const isBeef = path.includes('한우') && path.includes('암소');
-        const isPork = path.includes('돈육');
-        const matchesSpecies = animalType === 'BEEF' ? isBeef : isPork;
-
-        // 2. 보관 상태 판별 (냉장 / 냉동)
-        // 💡 주의: 카테고리 경로(path)에 "냉동"이 포함되어 있거나, 카테고리 명칭(node.name)에 "냉동"이 포함되면 냉동으로 판별합니다.
-        const isChilled = path.includes('냉장') && !path.includes('냉동') && !node.name.includes('냉동');
-        const isFrozen = path.includes('냉동') || node.name.includes('냉동');
-        const matchesStorage = storageType === 'CHILLED' ? isChilled : isFrozen;
-
-        return matchesSpecies && matchesStorage;
-      })
-      .map((node) => {
-        // 3. 표시용 명칭 가공 (한우 암소일 경우 "(암소)" 꼬리표 부착)
-        let displayName = node.name;
-        if (node.path.includes('암소')) {
-          displayName = `${node.name} (암소)`;
+        let path = '';
+        let ctgNo = `virtual-${name}`;
+        if (matchedNode) {
+          path = matchedNode.path;
+          ctgNo = matchedNode.ctgNo;
+        } else {
+          const speciesPrefix = animalType === 'BEEF' ? '국내산 한우 > 국내산 한우 암소' : '국내산 돈육';
+          const storagePrefix = storageType === 'CHILLED' ? '냉장' : '냉동';
+          path = `${speciesPrefix} > ${storagePrefix} > ${name}`;
         }
+
+        const displayName = animalType === 'BEEF' ? `${name} (암소)` : name;
+
         return {
-          ...node,
+          ctgNo,
+          name,
           displayName,
+          path,
+          hasApiData: !!matchedNode,
         };
       })
-      .filter((item, index, self) => {
-        // 4. 동일한 displayName을 가진 부위명은 목록에서 중복제거(Unique) 처리합니다.
-        // 한국어 주석: 중복 노출을 방지하기 위해 중복 카테고리를 필터링합니다.
-        return self.findIndex((t) => t.displayName === item.displayName) === index;
-      })
       .filter((item) => {
-        // 5. 자음/모음 검색 지원
+        // 3. 자음/모음 검색 지원
         return matchesSearch(item.displayName, searchQuery);
       });
-  }, [categories, animalType, storageType, searchQuery]);
+  }, [categories, animalType, storageType, targetMasterList, searchQuery]);
 
   const handleAnimalChange = (type: AnimalType) => {
     setAnimalType(type);
@@ -204,21 +222,37 @@ export function AllPricesPage() {
             </div>
           )}
 
-          {!loading && filteredCategories.length > 0 && filteredCategories.map((node) => (
-            <button
-              key={node.ctgNo}
-              onClick={() => setSelectedItemId(`path:${node.path}`)}
-              className="w-full text-left bg-[var(--color-surface)] p-[var(--spacing-20)] rounded-[var(--radius-xl)] border border-[var(--color-divider)] shadow-soft active:scale-[0.98] active:bg-[rgba(59,145,200,0.05)] transition-all duration-200 flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-            >
-              <div className="flex flex-col gap-1">
-                <span className="text-body-lg text-[var(--text-strong)] font-bold">{node.displayName}</span>
-                <span className="text-caption text-[var(--text-light)]">{node.path.split(' > ').slice(0, 2).join(' > ')}</span>
-              </div>
-              <div className="flex items-center gap-1 text-caption text-[var(--color-secondary)] font-bold">
-                시세 보기 &rarr;
-              </div>
-            </button>
-          ))}
+          {!loading && filteredCategories.length > 0 && filteredCategories.map((node) => {
+            const hasData = node.hasApiData;
+            return (
+              <button
+                key={node.ctgNo}
+                disabled={!hasData}
+                onClick={() => hasData && setSelectedItemId(`path:${node.path}`)}
+                className={`w-full text-left bg-[var(--color-surface)] p-[var(--spacing-20)] rounded-[var(--radius-xl)] border border-[var(--color-divider)] shadow-soft transition-all duration-200 flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] ${
+                  hasData 
+                    ? 'active:scale-[0.98] active:bg-[rgba(59,145,200,0.05)] cursor-pointer' 
+                    : 'opacity-50 cursor-not-allowed'
+                }`}
+              >
+                <div className="flex flex-col gap-1">
+                  <span className="text-body-lg text-[var(--text-strong)] font-bold">{node.displayName}</span>
+                  <span className="text-caption text-[var(--text-light)]">
+                    {node.path ? node.path.split(' > ').slice(0, 2).join(' > ') : (animalType === 'BEEF' ? '국내산 한우 > 국내산 한우 암소' : '국내산 돈육')}
+                  </span>
+                </div>
+                {hasData ? (
+                  <div className="flex items-center gap-1 text-caption text-[var(--color-secondary)] font-bold">
+                    시세 보기 &rarr;
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 text-caption text-[var(--text-light)] font-bold">
+                    0개 (준비중)
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
       </main>
 
