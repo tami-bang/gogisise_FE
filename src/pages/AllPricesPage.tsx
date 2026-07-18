@@ -98,7 +98,13 @@ export function AllPricesPage() {
         // 📌 한국어 주석: 백엔드가 데이터 분석을 위해 매칭하는 표준 화살표( > ) 형태의 categoryPath 규격으로 결합 경로를 일괄 통일합니다.
         const speciesPrefix = animalType === 'BEEF' ? '국내산 한우 > 국내산 한우 암소' : '국내산 돈육';
         const storagePrefix = storageType === 'CHILLED' ? '냉장' : '냉동';
-        const path = `${speciesPrefix} > ${storagePrefix} > ${name}`;
+        const matchedPathParts = matchedNode?.path.split(',').map((part) => part.trim()) ?? [];
+        const sourceGroup = matchedPathParts.length >= 2
+          ? matchedPathParts[matchedPathParts.length - 2]
+          : null;
+        const path = sourceGroup
+          ? `${speciesPrefix} > ${sourceGroup} > ${storagePrefix} > ${name}`
+          : `${speciesPrefix} > ${storagePrefix} > ${name}`;
         
         let ctgNo = `virtual-${name}`;
         if (matchedNode) {
