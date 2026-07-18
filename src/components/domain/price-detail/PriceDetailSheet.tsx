@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { usePriceDetail } from '../../../hooks/usePriceDetail';
-import { useFavoriteMutation } from '../../../hooks/useFavoriteMutation';
 import { ListSkeleton } from '../../common/ListSkeleton';
 import { InlineError } from '../../common/InlineError';
 import { EmptyState } from '../../common/EmptyState';
@@ -9,7 +8,7 @@ interface PriceDetailSheetProps {
   isOpen: boolean;
   itemId: string | null;
   onClose: () => void;
-  onFavoriteRemoved?: () => void;
+  onFavoriteRemoved?: () => void; // 선택적 속성으로 유지 (MainPage 호환용)
 }
 
 // 1. 상품명에서 등급을 정확히 낚아채는 유틸리티 함수
@@ -26,13 +25,24 @@ const extractWeight = (name: string): number | null => {
   return match ? parseFloat(match[1]) : null;
 };
 
-export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved }: PriceDetailSheetProps) {
+interface FormattedMarketItem {
+  goodsNo: string;
+  brandName: string;
+  grade: string;
+  itemName: string;
+  weight?: number;
+  pricePerKg: number;
+  totalPrice?: number;
+  detailUrl?: string;
+}
+
+export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _onFavoriteRemoved }: PriceDetailSheetProps) {
   const { status, detail, refetch } = usePriceDetail(isOpen ? itemId : null);
   const [activeTab, setActiveTab] = useState<string>('');
   const sheetRef = useRef<HTMLDivElement>(null);
 
   // 3. API 응답 데이터(sourceItems)를 화면용 데이터 스펙으로 포맷팅 및 중량/총가격 산출
-  const items = useMemo(() => {
+  const items = useMemo<FormattedMarketItem[]>(() => {
     if (!detail || !detail.sourceItems) return [];
     return detail.sourceItems.map((si) => {
       const weight = extractWeight(si.name) || 0;
@@ -56,14 +66,14 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved }:
   const { groupedItems, availableTabs } = useMemo(() => {
     if (items.length === 0) return { groupedItems: {}, availableTabs: [] };
 
-    const groups: Record<string, typeof items> = {
+    const groups: Record<string, FormattedMarketItem[]> = {
       '1++등급': [],
       '1+등급': [],
       '1등급': [],
       '기타': []
     };
 
-    items.forEach(item => {
+    items.forEach((item: FormattedMarketItem) => {
       const grade = extractGrade(item.itemName || '');
       groups[grade].push(item);
     });
@@ -119,10 +129,10 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved }:
   const currentItems = groupedItems[activeTab] || [];
   const stats = useMemo(() => {
     if (currentItems.length === 0) return { avg: 0, min: 0, max: 0, count: 0 };
-    const prices = currentItems.map(item => item.pricePerKg); 
+    const prices = currentItems.map((item: FormattedMarketItem) => item.pricePerKg); 
     
     return {
-      avg: Math.round(prices.reduce((a, b) => a + b, 0) / prices.length),
+      avg: Math.round(prices.reduce((a: number, b: number) => a + b, 0) / prices.length),
       min: Math.min(...prices),
       max: Math.max(...prices),
       count: currentItems.length
@@ -175,7 +185,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved }:
           <>
             {/* UI 렌더링: 상단 탭 버튼 영역 */}
             <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
-              {availableTabs.map(tab => (
+              {availableTabs.map((tab: string) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -215,7 +225,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved }:
 
             {/* UI 렌더링: 선택된 등급의 상세 상품 카드 리스트 및 링크 연결 */}
             <div className="flex flex-col gap-4 pb-8">
-              {currentItems.map((item, idx) => (
+              {currentItems.map((item: FormattedMarketItem, idx: number) => (
                 <a
                   key={idx}
                   href={item.detailUrl}
