@@ -41,6 +41,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
   // status: 'idle' | 'loading' | 'success' | 'empty' | 'error' 중 하나를 가집니다.
   const { status, detail, refetch } = usePriceDetail(isOpen ? itemId : null);
   const sourceItems = useMemo(() => detail?.sourceItems ?? [], [detail]);
+  const sourceRecords = useMemo(() => detail?.sourceRecords ?? [], [detail]);
 
   const [activeTab, setActiveTab] = useState<string>('');
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -48,23 +49,36 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
   // 5. API 응답(detail.sourceItems)을 화면 렌더링용 규격으로 변환 + 중량/최종가 산출
   // 💡 useMemo: 데이터가 바뀔 때만 재계산하는 성능 최적화 훅. 계산기가 입력값이 같으면 다시 계산 안 하는 것과 같습니다.
   const items = useMemo<FormattedMarketItem[]>(() => {
-    return sourceItems.map((si) => {
-      const weight = extractWeight(si.name) || 0;
-      const pricePerKg = si.price || 0;
-      const totalPrice = weight > 0 ? Math.round(pricePerKg * weight) : 0;
+    if (sourceItems.length > 0) {
+      return sourceItems.map((si) => {
+        const weight = extractWeight(si.name) || 0;
+        const pricePerKg = si.price || 0;
+        const totalPrice = weight > 0 ? Math.round(pricePerKg * weight) : 0;
 
+        return {
+          goodsNo: si.itemId,
+          brandName: si.brand || '금천한우',
+          grade: si.grade || extractGrade(si.name),
+          itemName: si.name,
+          weight: weight > 0 ? weight : undefined,
+          pricePerKg,
+          totalPrice: totalPrice > 0 ? totalPrice : undefined,
+          detailUrl: si.detailUrl,
+        };
+      });
+    }
+
+    return sourceRecords.map((record) => {
+      const itemName = record.rawProductName || record.sourceName;
       return {
-        goodsNo: si.itemId,
-        brandName: si.brand || '금천한우',
-        grade: si.grade || extractGrade(si.name),
-        itemName: si.name,
-        weight: weight > 0 ? weight : undefined,
-        pricePerKg,
-        totalPrice: totalPrice > 0 ? totalPrice : undefined,
-        detailUrl: si.detailUrl,
+        goodsNo: record.id,
+        brandName: record.brand || '금천한우',
+        grade: record.grade || extractGrade(itemName),
+        itemName,
+        pricePerKg: record.price || 0,
       };
     });
-  }, [sourceItems]);
+  }, [sourceItems, sourceRecords]);
 
   // 6. 변환된 items를 등급별(1++, 1+, 1등급)로 그룹화 및 탭 목록 생성
   const { groupedItems, availableTabs } = useMemo(() => {
@@ -239,10 +253,12 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
               {currentItems.map((item: FormattedMarketItem, idx: number) => (
                 <a
                   key={idx}
-                  href={item.detailUrl || `https://www.ekcm.co.kr/pd/productDetail?goodsNo=${item.goodsNo}`}
+                  href={item.detailUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:border-blue-500 hover:shadow-md transition-all cursor-pointer"
+                  className={`block bg-white border border-gray-200 rounded-xl p-4 shadow-sm transition-all ${
+                    item.detailUrl ? 'hover:border-blue-500 hover:shadow-md cursor-pointer' : ''
+                  }`}
                 >
                   {/* 브랜드 및 등급 뱃지 */}
                   <div className="flex justify-between items-start mb-2">
@@ -254,7 +270,9 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                         {item.grade}
                       </span>
                     </div>
-                    <span className="text-xs text-blue-600 font-bold">구매창 이동 ↗</span>
+                    {item.detailUrl && (
+                      <span className="text-xs text-blue-600 font-bold">구매창 이동 ↗</span>
+                    )}
                   </div>
 
                   {/* 상품명 */}
