@@ -130,6 +130,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
 
   const [activeTab, setActiveTab] = useState<string>(GRADE_TABS[0]);
   const [sortOption, setSortOption] = useState<SortOption>('PRICE_PER_KG_ASC');
+  const [selectedChartDate, setSelectedChartDate] = useState<string | null>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
 
   // 5. API 응답(detail.sourceItems)을 화면 렌더링용 규격으로 변환 + 중량/최종가 산출
@@ -283,6 +284,10 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
       })),
     [detail?.priceHistory]
   );
+  const selectedChartPoint = useMemo(
+    () => chartData.find((point) => point.marketDate === selectedChartDate) ?? chartData.at(-1),
+    [chartData, selectedChartDate]
+  );
 
   if (!isOpen) return null;
 
@@ -420,8 +425,9 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
               </select>
             </div>
 
-            <p className="mb-[var(--spacing-16)] rounded-[var(--radius-lg)] bg-[var(--color-surface-soft)] px-[var(--spacing-16)] py-[var(--spacing-12)] text-caption leading-relaxed text-[var(--text-muted)]">
-              데이터는 마지막 수집 시점({formatCollectedAt(detail?.lastCollectedAt)}) 기준이며, 실제 재고 상황과 차이가 있습니다.
+            <p className="mb-[var(--spacing-16)] rounded-[var(--radius-lg)] bg-[var(--color-surface-soft)] px-[var(--spacing-16)] py-[var(--spacing-12)] text-caption font-bold leading-relaxed text-[var(--text-muted)]">
+              <span className="block">데이터는 마지막 수집 시점({formatCollectedAt(detail?.lastCollectedAt)}) 기준이며,</span>
+              <span className="block">실제 재고 상황과 차이가 있습니다.</span>
             </p>
 
             {/* 선택된 등급의 평균가 요약 카드 */}
@@ -457,18 +463,25 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
               >
                 <div className="mb-[var(--spacing-8)] flex items-baseline justify-between gap-[var(--spacing-8)]">
                   <h3 id="seven-day-price-title" className="text-label text-[var(--text-strong)]">최근 7일 가격 추이</h3>
-                  <p className="text-xs text-[var(--text-muted)]">kg당 평균 시세</p>
+                  <p className="hidden text-xs text-[var(--text-muted)] sm:block">kg당 평균 시세</p>
+                  {selectedChartPoint && (
+                    <p className="text-xs font-extrabold tabular-nums text-[var(--color-secondary)] sm:hidden">
+                      {selectedChartPoint.label} · {Number(selectedChartPoint.price).toLocaleString()}원
+                    </p>
+                  )}
                 </div>
                 {chartData.length > 1 ? (
                   <div className="h-28 w-full" role="img" aria-label="최근 7일 kg당 평균 시세 차트">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData} margin={{ top: 8, right: 12, left: 12, bottom: 0 }}>
+                      <LineChart data={chartData} margin={{ top: 8, right: 18, left: 18, bottom: 0 }}>
                         <XAxis
                           dataKey="label"
                           interval={0}
                           minTickGap={0}
                           axisLine={false}
                           tickLine={false}
+                          height={22}
+                          padding={{ left: 4, right: 4 }}
                           tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 700 }}
                         />
                         <Tooltip
@@ -498,6 +511,29 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                     가격 흐름을 표시할 이력이 아직 충분하지 않습니다.
                   </div>
                 )}
+                {chartData.length > 1 && (
+                  <div className="mt-[var(--spacing-8)] flex gap-[var(--spacing-4)] overflow-x-auto pb-[var(--spacing-4)] sm:hidden" aria-label="날짜별 시세 선택">
+                    {chartData.map((point) => {
+                      const isSelected = selectedChartPoint?.marketDate === point.marketDate;
+                      return (
+                        <button
+                          key={point.marketDate}
+                          type="button"
+                          onClick={() => setSelectedChartDate(point.marketDate)}
+                          className="min-h-11 min-w-14 rounded-[var(--radius-sm)] px-[var(--spacing-8)] text-xs font-bold tabular-nums transition-colors"
+                          style={{
+                            backgroundColor: isSelected ? 'var(--color-secondary)' : 'var(--color-surface)',
+                            color: isSelected ? '#ffffff' : 'var(--text-muted)',
+                          }}
+                          aria-pressed={isSelected}
+                          aria-label={`${point.marketDate}, kg당 ${Number(point.price).toLocaleString()}원`}
+                        >
+                          {point.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </section>
             </div>
 
@@ -514,22 +550,22 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                   }`}
                 >
                   {/* 1행: 상품명(1·2열 병합) | 제조일 */}
-                  <div className="grid grid-cols-3 border-b border-[var(--color-divider)] pb-[var(--spacing-12)]">
-                    <div className="col-span-2 min-w-0 pr-[var(--spacing-12)] border-r border-[var(--color-divider)]">
+                  <div className="grid grid-cols-1 border-b border-[var(--color-divider)] pb-[var(--spacing-12)] sm:grid-cols-3">
+                    <div className="min-w-0 border-b border-[var(--color-divider)] pb-[var(--spacing-12)] sm:col-span-2 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-[var(--spacing-12)]">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">상품명</p>
                       <p className="text-label text-[var(--text-strong)] break-words leading-snug">{item.itemName}</p>
                     </div>
-                    <div className="min-w-0 overflow-hidden pl-[var(--spacing-12)] text-right">
+                    <div className="flex min-w-0 items-baseline justify-between overflow-hidden pt-[var(--spacing-12)] sm:block sm:pl-[var(--spacing-12)] sm:pt-0 sm:text-right">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">제조일</p>
-                      <p className="w-full truncate text-base font-bold leading-snug tabular-nums text-[var(--text-strong)]" title={formatDate(item.manufacturedAt)}>
+                      <p className="whitespace-nowrap text-base font-bold leading-snug tabular-nums text-[var(--text-strong)]" title={formatDate(item.manufacturedAt)}>
                         {formatDate(item.manufacturedAt)}
                       </p>
                     </div>
                   </div>
 
                   {/* 2행: 기존 정보 영역 2/3만 3등분하고, 소비기한 1/3 폭은 보존 */}
-                  <div className="flex border-b border-[var(--color-divider)] py-[var(--spacing-12)]">
-                    <div className="flex w-2/3 min-w-0">
+                  <div className="flex flex-col border-b border-[var(--color-divider)] py-[var(--spacing-12)] sm:flex-row">
+                    <div className="flex w-full min-w-0 sm:w-2/3">
                       <div className="min-w-0 flex-1 pr-[var(--spacing-8)] border-r border-[var(--color-divider)]">
                         <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">등급</p>
                         <p className="text-label text-[var(--text-strong)]">{item.grade === '기타' ? '-' : item.grade}</p>
@@ -549,10 +585,10 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                         <p className="text-label text-[var(--text-strong)] whitespace-nowrap">{item.weight ? `${item.weight}kg` : '-'}</p>
                       </div>
                     </div>
-                    <div className="w-1/3 min-w-0 overflow-hidden pl-[var(--spacing-12)] text-right">
+                    <div className="mt-[var(--spacing-12)] flex w-full min-w-0 items-baseline justify-between overflow-hidden border-t border-[var(--color-divider)] pt-[var(--spacing-12)] sm:mt-0 sm:block sm:w-1/3 sm:border-t-0 sm:pl-[var(--spacing-12)] sm:pt-0 sm:text-right">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">소비기한</p>
                       <p
-                        className={`w-full break-words text-sm font-bold leading-snug tabular-nums ${isExpirySoon(item.expiresAt) ? 'text-[var(--color-text-red)]' : 'text-[var(--text-strong)]'}`}
+                        className={`whitespace-nowrap text-base font-bold leading-snug tabular-nums sm:text-sm ${isExpirySoon(item.expiresAt) ? 'text-[var(--color-text-red)]' : 'text-[var(--text-strong)]'}`}
                         title={formatDate(item.expiresAt)}
                       >
                         {isExpirySoon(item.expiresAt) ? '⚠ ' : ''}{formatDate(item.expiresAt)}
