@@ -356,44 +356,55 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                     item.detailUrl ? 'hover:border-[var(--color-secondary)] hover:shadow-medium cursor-pointer active:scale-[0.98]' : ''
                   }`}
                 >
-                  {/* 1행: 상품명 | 등급 | 제조일/소비기한 */}
-                  <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(64px,0.65fr)_minmax(104px,1fr)] border-b border-[var(--color-divider)] pb-[var(--spacing-16)]">
-                    <div className="min-w-0 pr-[var(--spacing-12)]">
+                  {/* 1행: 상품명 | 등급 | 제조일 */}
+                  <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(64px,0.65fr)_minmax(104px,1fr)] border-b border-[var(--color-divider)] pb-[var(--spacing-12)]">
+                    <div className="min-w-0 pr-[var(--spacing-12)] border-r border-[var(--color-divider)]">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">상품명</p>
                       <p className="text-label text-[var(--text-strong)] break-words leading-snug">{item.itemName}</p>
                     </div>
-                    <div className="px-[var(--spacing-12)] border-x border-[var(--color-divider)]">
+                    <div className="px-[var(--spacing-12)] border-r border-[var(--color-divider)]">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">등급</p>
                       <p className="text-label text-[var(--text-strong)]">{item.grade}</p>
-                      {item.ageInMonths != null && (
-                        <span className="inline-block mt-1 px-2 py-0.5 rounded-[var(--radius-sm)] bg-[#edf6fc] text-[var(--color-secondary)] text-caption font-bold">
-                          {item.ageInMonths}개월
-                        </span>
-                      )}
                     </div>
                     <div className="min-w-0 overflow-hidden pl-[var(--spacing-12)] text-right">
-                      <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">제조일/소비기한</p>
-                      <div className="flex min-w-0 flex-col items-end gap-0.5 overflow-hidden text-[12px] leading-5 tabular-nums">
-                        <span className="block w-full truncate text-[var(--text-strong)]" title={`제조일 ${formatDate(item.manufacturedAt)}`}>
-                          {formatDate(item.manufacturedAt)}
-                        </span>
-                        <span
-                          className={`block w-full truncate ${isExpirySoon(item.expiresAt) ? 'text-[var(--color-text-red)] font-bold' : 'text-[var(--text-strong)]'}`}
-                          title={`소비기한 ${formatDate(item.expiresAt)}`}
-                        >
-                          {isExpirySoon(item.expiresAt) ? '⚠ ' : ''}{formatDate(item.expiresAt)}
-                        </span>
-                      </div>
+                      <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">제조일</p>
+                      <p className="w-full truncate text-base font-bold leading-snug tabular-nums text-[var(--text-strong)]" title={formatDate(item.manufacturedAt)}>
+                        {formatDate(item.manufacturedAt)}
+                      </p>
                     </div>
                   </div>
 
-                  {/* 2행: kg당 단가 | 중량 | 판매가 */}
-                  <div className="grid grid-cols-3 pt-[var(--spacing-16)]">
-                    <div className="pr-[var(--spacing-12)]">
+                  {/* 2행: 월령 | 여백 | 소비기한 */}
+                  <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(64px,0.65fr)_minmax(104px,1fr)] border-b border-[var(--color-divider)] py-[var(--spacing-12)]">
+                    <div className="min-w-0 pr-[var(--spacing-12)] border-r border-[var(--color-divider)]">
+                      <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">월령</p>
+                      {item.ageInMonths != null ? (
+                        <span className="inline-block px-2 py-0.5 rounded-[var(--radius-sm)] bg-[#edf6fc] text-[var(--color-secondary)] text-caption font-bold whitespace-nowrap">
+                          {item.ageInMonths}개월
+                        </span>
+                      ) : (
+                        <span className="text-label text-[var(--text-strong)]">-</span>
+                      )}
+                    </div>
+                    <div className="px-[var(--spacing-12)] border-r border-[var(--color-divider)]" aria-hidden="true" />
+                    <div className="min-w-0 overflow-hidden pl-[var(--spacing-12)] text-right">
+                      <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">소비기한</p>
+                      <p
+                        className={`w-full truncate text-base font-bold leading-snug tabular-nums ${isExpirySoon(item.expiresAt) ? 'text-[var(--color-text-red)]' : 'text-[var(--text-strong)]'}`}
+                        title={formatDate(item.expiresAt)}
+                      >
+                        {isExpirySoon(item.expiresAt) ? '⚠ ' : ''}{formatDate(item.expiresAt)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 3행: kg당 단가 | 중량 | 판매가 */}
+                  <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(64px,0.65fr)_minmax(104px,1fr)] pt-[var(--spacing-16)]">
+                    <div className="pr-[var(--spacing-12)] border-r border-[var(--color-divider)]">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">kg당 단가</p>
                       <p className="text-label text-[var(--text-strong)]">{item.pricePerKg.toLocaleString()}원</p>
                     </div>
-                    <div className="px-[var(--spacing-12)] border-x border-[var(--color-divider)] text-center">
+                    <div className="px-[var(--spacing-12)] border-r border-[var(--color-divider)] text-center">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">중량</p>
                       <p className="text-label text-[var(--text-strong)]">{item.weight ? `${item.weight}kg` : '-'}</p>
                     </div>
