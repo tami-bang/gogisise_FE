@@ -33,6 +33,27 @@ const formatDate = (value?: string | null) => {
   return date.toISOString().slice(0, 10);
 };
 
+const formatCollectedAt = (value?: string | null) => {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+
+  const parts = new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? '';
+
+  return `${part('year')}.${part('month')}.${part('day')} ${part('hour')}:${part('minute')}:${part('second')}`;
+};
+
 const getDaysUntilExpiry = (value?: string | null) =>
   value ? Math.ceil((new Date(value).getTime() - Date.now()) / 86_400_000) : null;
 
@@ -355,6 +376,10 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
               </select>
             </div>
 
+            <p className="mb-[var(--spacing-16)] rounded-[var(--radius-lg)] bg-[var(--color-surface-soft)] px-[var(--spacing-16)] py-[var(--spacing-12)] text-caption leading-relaxed text-[var(--text-muted)]">
+              데이터는 마지막 수집 시점({formatCollectedAt(detail?.lastCollectedAt)}) 기준이며, 실제 재고 상황과 차이가 있습니다.
+            </p>
+
             {/* 선택된 등급의 평균가 요약 카드 */}
             <div className="bg-gray-50 rounded-xl p-6 mb-6 text-center">
               <p className="text-gray-500 mb-2">{activeTab} 평균 시세 (1kg)</p>
@@ -378,6 +403,12 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
             </div>
 
             {/* 상세 상품 카드 리스트 + 금천미트 구매창 바로가기 링크 */}
+            <p
+              id="external-stock-notice"
+              className="mb-[var(--spacing-12)] text-caption leading-relaxed text-[var(--text-muted)]"
+            >
+              외부 사이트의 실시간 판매 상태에 따라 품절일 수 있습니다.
+            </p>
             <div className="flex flex-col gap-4 pb-8">
               {currentItems.map((item: FormattedMarketItem, idx: number) => (
                 <a
@@ -385,6 +416,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                   href={item.detailUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-describedby="external-stock-notice"
                   className={`block bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-xl)] p-[var(--spacing-16)] shadow-soft transition-all duration-200 ${
                     item.detailUrl ? 'hover:border-[var(--color-secondary)] hover:shadow-medium cursor-pointer active:scale-[0.98]' : ''
                   }`}
@@ -447,6 +479,11 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                       </p>
                     </div>
                   </div>
+                  {item.detailUrl && (
+                    <div className="mt-[var(--spacing-12)] border-t border-[var(--color-divider)] pt-[var(--spacing-12)] text-right">
+                      <span className="text-caption font-bold text-[var(--color-secondary)]">구매하기 →</span>
+                    </div>
+                  )}
                 </a>
               ))}
             </div>

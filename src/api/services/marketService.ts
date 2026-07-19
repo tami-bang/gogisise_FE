@@ -74,6 +74,7 @@ const normalizePriceDetail = (detail: AggregatedPriceDetail): AggregatedPriceDet
   highestPrice: detail.highestPrice ?? 0,
   lowestPrice: detail.lowestPrice ?? 0,
   participantCount: detail.participantCount ?? 0,
+  lastCollectedAt: detail.lastCollectedAt ?? null,
   sourceRecords: Array.isArray(detail.sourceRecords)
     ? detail.sourceRecords.map(normalizeSourceRecord)
     : [],

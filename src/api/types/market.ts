@@ -134,6 +134,7 @@ export interface AggregatedPriceDetail {
   highestPrice: number;         // 명세: highestPrice (이전: maxPrice)
   lowestPrice: number;          // 명세: lowestPrice  (이전: minPrice)
   participantCount: number;     // 명세: participantCount (이전: includedCount)
+  lastCollectedAt?: string | null; // 상세 매물의 마지막 수집 완료 일시
 
   // 원본 매물 리스트
   sourceRecords: SourcePriceRecord[];
