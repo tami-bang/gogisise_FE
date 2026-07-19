@@ -461,11 +461,11 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                 aria-labelledby="seven-day-price-title"
                 className="mt-[var(--spacing-16)] border-t border-[var(--color-divider)] pt-[var(--spacing-16)] text-left"
               >
-                <div className="mb-[var(--spacing-8)] flex items-baseline justify-between gap-[var(--spacing-8)]">
+                <div className="mb-[var(--spacing-8)] flex flex-col items-start gap-[var(--spacing-4)]">
                   <h3 id="seven-day-price-title" className="text-label text-[var(--text-strong)]">최근 7일 가격 추이</h3>
                   {selectedChartPoint && (
                     <p className="text-base font-black tabular-nums text-[var(--color-secondary)]">
-                      {Number(selectedChartPoint.price).toLocaleString()}원
+                      kg당 시세 : {Number(selectedChartPoint.price).toLocaleString()}원
                     </p>
                   )}
                 </div>
