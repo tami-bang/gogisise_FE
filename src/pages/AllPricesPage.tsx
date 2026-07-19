@@ -98,13 +98,10 @@ export function AllPricesPage() {
         // 📌 한국어 주석: 백엔드가 데이터 분석을 위해 매칭하는 표준 화살표( > ) 형태의 categoryPath 규격으로 결합 경로를 일괄 통일합니다.
         const speciesPrefix = animalType === 'BEEF' ? '국내산 한우 > 국내산 한우 암소' : '국내산 돈육';
         const storagePrefix = storageType === 'CHILLED' ? '냉장' : '냉동';
-        const matchedPathParts = matchedNode?.path.split(',').map((part) => part.trim()) ?? [];
-        const sourceGroup = matchedPathParts.length >= 2
-          ? matchedPathParts[matchedPathParts.length - 2]
-          : null;
-        const path = sourceGroup
-          ? `${speciesPrefix} > ${sourceGroup} > ${storagePrefix} > ${name}`
-          : `${speciesPrefix} > ${storagePrefix} > ${name}`;
+        // 상세 조회는 공급처/브랜드 노드가 아니라 축종·보관상태·부위로만 식별합니다.
+        // 같은 부위의 활성 매물을 모든 공급처에서 조회해야 하므로 카테고리 트리에서
+        // 우연히 먼저 발견한 상위 노드를 경로에 포함하지 않습니다.
+        const path = `${speciesPrefix} > ${storagePrefix} > ${name}`;
         
         let ctgNo = `virtual-${name}`;
         if (matchedNode) {
