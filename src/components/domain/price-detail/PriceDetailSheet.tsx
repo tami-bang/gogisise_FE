@@ -382,7 +382,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
 
             {/* 선택된 등급의 평균가 요약 카드 */}
             <div className="bg-gray-50 rounded-xl p-6 mb-6 text-center">
-              <p className="text-gray-500 mb-2">{activeTab} 평균 시세 (1kg)</p>
+              <p className="text-gray-500 mb-2">{detail?.displayName || '부위'} 평균 시세 (1kg)</p>
               <p className="text-3xl font-extrabold text-gray-900">
                 {stats.avg.toLocaleString()}원
               </p>
