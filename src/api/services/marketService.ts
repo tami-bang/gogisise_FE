@@ -92,6 +92,32 @@ const normalizePriceDetail = (detail: AggregatedPriceDetail): AggregatedPriceDet
   unit: detail.unit ?? '1kg',
 });
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+/**
+ * apiClient가 성공 래퍼를 중앙에서 제거하지만, 배포 버전 차이로 상세 응답이
+ * `{ data: detail }` 또는 `{ data: { items: [...] } }` 형태로 한 번 더 감싸져도
+ * 실제 상세 객체와 매물 배열을 잃지 않도록 서비스 경계에서 최종 정규화합니다.
+ */
+const normalizePriceDetailPayload = (payload: unknown): AggregatedPriceDetail => {
+  let detailPayload = payload;
+
+  while (isRecord(detailPayload) && 'data' in detailPayload && isRecord(detailPayload.data)) {
+    detailPayload = detailPayload.data;
+  }
+
+  const detail = detailPayload as AggregatedPriceDetail & { items?: AggregatedPriceDetail['sourceItems'] };
+  return normalizePriceDetail({
+    ...detail,
+    sourceItems: Array.isArray(detail.sourceItems)
+      ? detail.sourceItems
+      : Array.isArray(detail.items)
+        ? detail.items
+        : [],
+  });
+};
+
 const toApiOptions = (options?: MarketServiceRequestOptions): ApiRequestOptions => ({
   accessToken: options?.accessToken,
   // signal: options?.signal, // AbortError 원천 차단을 위해 signal 연결 해제
@@ -419,12 +445,12 @@ export const marketService = {
       return await marketService.getCategoryCalculations(categoryPath, options);
     }
     try {
-      const detail = await apiClient.get<AggregatedPriceDetail>(
+      const detail = await apiClient.get<unknown>(
         `${MARKET_PATH}/items/${encodeURIComponent(itemId)}/calculations`,
         toApiOptions(options)
       );
       setMockModeFlag(false);
-      return normalizePriceDetail(detail);
+      return normalizePriceDetailPayload(detail);
     } catch (error) {
       console.warn(`[MarketService] API detail request failed for ${itemId}. Falling back to MOCK data:`, error);
       setMockModeFlag(true);
@@ -508,12 +534,12 @@ export const marketService = {
     options?: MarketServiceRequestOptions
   ): Promise<AggregatedPriceDetail> => {
     try {
-      const detail = await apiClient.get<AggregatedPriceDetail>(
+      const detail = await apiClient.get<unknown>(
         `${MARKET_PATH}/items/calculations?categoryPath=${encodeURIComponent(categoryPath)}`,
         toApiOptions(options)
       );
       setMockModeFlag(false);
-      return normalizePriceDetail(detail);
+      return normalizePriceDetailPayload(detail);
     } catch (error) {
       console.warn(`[MarketService] API category calculations request failed for ${categoryPath}. falling back:`, error);
       setMockModeFlag(true);

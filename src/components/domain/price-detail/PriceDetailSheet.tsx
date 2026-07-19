@@ -10,10 +10,11 @@ interface PriceDetailSheetProps {
 }
 
 // 1. 상품명 텍스트에서 등급 문자열을 낚아채는 순수 유틸 함수
-const extractGrade = (name: string) => {
-  if (name.includes('1++')) return '1++';
-  if (name.includes('1+')) return '1+';
-  if (name.includes('1등급') || name.match(/\b1\b/)) return '1';
+const extractGrade = (value: string) => {
+  const normalized = value.replace(/등급/g, '').replace(/\s+/g, '').toUpperCase();
+  if (normalized.includes('1++') || normalized.includes('1PP')) return '1++';
+  if (normalized.includes('1+') || normalized.includes('1P')) return '1+';
+  if (normalized === '1' || normalized.includes('/1') || normalized.match(/\b1\b/)) return '1';
   return '기타';
 };
 
@@ -77,8 +78,14 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
   // 4. 💡 핵심: 실제로 백엔드 API에서 데이터를 가져오는 훅 연결
   // status: 'idle' | 'loading' | 'success' | 'empty' | 'error' 중 하나를 가집니다.
   const { status, detail, refetch } = usePriceDetail(isOpen ? itemId : null);
-  const sourceItems = useMemo(() => detail?.sourceItems ?? [], [detail]);
-  const sourceRecords = useMemo(() => detail?.sourceRecords ?? [], [detail]);
+  const sourceItems = useMemo(
+    () => (Array.isArray(detail?.sourceItems) ? detail.sourceItems : []),
+    [detail]
+  );
+  const sourceRecords = useMemo(
+    () => (Array.isArray(detail?.sourceRecords) ? detail.sourceRecords : []),
+    [detail]
+  );
 
   const [activeTab, setActiveTab] = useState<string>(GRADE_TABS[0]);
   const [sortOption, setSortOption] = useState<SortOption>('PRICE_PER_KG_ASC');
@@ -134,6 +141,13 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
 
     return groups;
   }, [items]);
+
+  // 응답에 기본값인 1++ 매물이 없더라도 데이터가 존재하는 첫 등급 탭을 선택합니다.
+  useEffect(() => {
+    if (groupedItems[activeTab]?.length > 0) return;
+    const firstAvailableGrade = GRADE_TABS.find((grade) => groupedItems[grade].length > 0);
+    if (firstAvailableGrade) setActiveTab(firstAvailableGrade);
+  }, [activeTab, groupedItems]);
 
   // 8. ESC 키 → 닫기 바인딩
   useEffect(() => {
@@ -279,7 +293,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
         )}
 
         {/* ③ 데이터 없음: 안내 문구 */}
-        {status === 'empty' && (
+        {(status === 'empty' || status === 'success') && items.length === 0 && (
           <div className="py-12 text-center">
             <p className="text-2xl mb-2">🥩</p>
             <p className="text-gray-600 font-bold mb-1">현재 수집된 도매 매물이 없습니다.</p>
