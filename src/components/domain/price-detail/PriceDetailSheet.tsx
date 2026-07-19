@@ -425,7 +425,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
             </p>
 
             {/* 선택된 등급의 평균가 요약 카드 */}
-            <div className="bg-gray-50 rounded-xl p-6 mb-6 text-center">
+            <div className="bg-gray-50 rounded-xl p-6 mb-[var(--spacing-16)] text-center">
               <p className="text-gray-500 mb-2">{detail?.displayName || '부위'} 평균 시세 (1kg)</p>
               <div className="flex flex-wrap items-baseline justify-center gap-x-[var(--spacing-12)] gap-y-[var(--spacing-4)]">
                 <p className="text-3xl font-extrabold tabular-nums text-gray-900">
@@ -450,15 +450,58 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                   <p className="text-gray-700 font-bold">{stats.count}곳</p>
                 </div>
               </div>
+
+              <section
+                aria-labelledby="seven-day-price-title"
+                className="mt-[var(--spacing-16)] border-t border-[var(--color-divider)] pt-[var(--spacing-16)] text-left"
+              >
+                <div className="mb-[var(--spacing-8)] flex items-baseline justify-between gap-[var(--spacing-8)]">
+                  <h3 id="seven-day-price-title" className="text-label text-[var(--text-strong)]">최근 7일 가격 추이</h3>
+                  <p className="text-xs text-[var(--text-muted)]">kg당 평균 시세</p>
+                </div>
+                {chartData.length > 1 ? (
+                  <div className="h-28 w-full" role="img" aria-label="최근 7일 kg당 평균 시세 차트">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData} margin={{ top: 8, right: 12, left: 12, bottom: 0 }}>
+                        <XAxis
+                          dataKey="label"
+                          interval={0}
+                          minTickGap={0}
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 700 }}
+                        />
+                        <Tooltip
+                          formatter={(value) => [`${Number(value).toLocaleString()}원`, 'kg당 시세']}
+                          labelFormatter={(_, payload) => payload[0]?.payload?.marketDate ?? ''}
+                          contentStyle={{
+                            border: '1px solid var(--color-border)',
+                            borderRadius: 'var(--radius-md)',
+                            boxShadow: 'var(--shadow-soft)',
+                            color: 'var(--text-strong)',
+                          }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="price"
+                          isAnimationActive={false}
+                          stroke="var(--color-secondary)"
+                          strokeWidth={3}
+                          dot={{ r: 4, fill: 'var(--color-surface)', stroke: 'var(--color-secondary)', strokeWidth: 2 }}
+                          activeDot={{ r: 6, fill: 'var(--color-primary)', stroke: 'var(--color-surface)', strokeWidth: 2 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="flex min-h-20 items-center justify-center rounded-[var(--radius-lg)] bg-[var(--color-surface)] px-[var(--spacing-12)] text-center text-caption text-[var(--text-muted)]">
+                    가격 흐름을 표시할 이력이 아직 충분하지 않습니다.
+                  </div>
+                )}
+              </section>
             </div>
 
             {/* 상세 상품 카드 리스트 + 금천미트 구매창 바로가기 링크 */}
-            <p
-              id="external-stock-notice"
-              className="mb-[var(--spacing-12)] text-caption leading-relaxed text-[var(--text-muted)]"
-            >
-              외부 사이트의 실시간 판매 상태에 따라 품절일 수 있습니다.
-            </p>
             <div className="flex flex-col gap-4 pb-8">
               {currentItems.map((item: FormattedMarketItem, idx: number) => (
                 <a
@@ -466,7 +509,6 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                   href={item.detailUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-describedby="external-stock-notice"
                   className={`block bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-xl)] p-[var(--spacing-16)] shadow-soft transition-all duration-200 ${
                     item.detailUrl ? 'hover:border-[var(--color-secondary)] hover:shadow-medium cursor-pointer active:scale-[0.98]' : ''
                   }`}
@@ -546,56 +588,6 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                 </a>
               ))}
             </div>
-
-            <section
-              aria-labelledby="seven-day-price-title"
-              className="mb-[var(--spacing-8)] rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-[var(--spacing-20)] shadow-soft"
-            >
-              <div className="mb-[var(--spacing-16)]">
-                <h3 id="seven-day-price-title" className="text-title text-[var(--text-strong)]">최근 7일 가격 추이</h3>
-                <p className="mt-[var(--spacing-4)] text-caption text-[var(--text-muted)]">kg당 평균 시세의 흐름입니다.</p>
-              </div>
-              {chartData.length > 1 ? (
-                <div className="h-52 w-full" role="img" aria-label="최근 7일 kg당 평균 시세 차트">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData} margin={{ top: 16, right: 20, left: 20, bottom: 0 }}>
-                      <XAxis
-                        dataKey="label"
-                        interval={0}
-                        minTickGap={0}
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: 'var(--text-muted)', fontSize: 11, fontWeight: 700 }}
-                      />
-                      <Tooltip
-                        cursor={{ fill: 'var(--color-surface-soft)' }}
-                        formatter={(value) => [`${Number(value).toLocaleString()}원`, 'kg당 시세']}
-                        labelFormatter={(_, payload) => payload[0]?.payload?.marketDate ?? ''}
-                        contentStyle={{
-                          border: '1px solid var(--color-border)',
-                          borderRadius: 'var(--radius-md)',
-                          boxShadow: 'var(--shadow-soft)',
-                          color: 'var(--text-strong)',
-                        }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="price"
-                        isAnimationActive={false}
-                        stroke="var(--color-secondary)"
-                        strokeWidth={4}
-                        dot={{ r: 5, fill: 'var(--color-surface)', stroke: 'var(--color-secondary)', strokeWidth: 3 }}
-                        activeDot={{ r: 7, fill: 'var(--color-primary)', stroke: 'var(--color-surface)', strokeWidth: 3 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div className="flex min-h-32 items-center justify-center rounded-[var(--radius-lg)] bg-[var(--color-surface-soft)] px-[var(--spacing-16)] text-center text-caption text-[var(--text-muted)]">
-                  가격 흐름을 표시할 이력이 아직 충분하지 않습니다.
-                </div>
-              )}
-            </section>
           </>
         )}
       </div>
