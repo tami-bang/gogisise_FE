@@ -11,9 +11,9 @@ interface PriceDetailSheetProps {
 
 // 1. 상품명 텍스트에서 등급 문자열을 낚아채는 순수 유틸 함수
 const extractGrade = (name: string) => {
-  if (name.includes('1++')) return '1++등급';
-  if (name.includes('1+')) return '1+등급';
-  if (name.includes('1등급') || name.match(/\b1\b/)) return '1등급';
+  if (name.includes('1++')) return '1++';
+  if (name.includes('1+')) return '1+';
+  if (name.includes('1등급') || name.match(/\b1\b/)) return '1';
   return '기타';
 };
 
@@ -22,8 +22,15 @@ const extractWeight = (name: string): number | null => {
   return match ? parseFloat(match[1]) : null;
 };
 
-const formatDate = (value?: string | null) =>
-  value ? new Intl.DateTimeFormat('ko-KR').format(new Date(value)) : '-';
+const formatDate = (value?: string | null) => {
+  if (!value) return '-';
+  const isoDate = value.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+  if (isoDate) return isoDate;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return date.toISOString().slice(0, 10);
+};
 
 const getDaysUntilExpiry = (value?: string | null) =>
   value ? Math.ceil((new Date(value).getTime() - Date.now()) / 86_400_000) : null;
@@ -55,7 +62,7 @@ type SortOption =
   | 'TOTAL_PRICE_ASC'
   | 'TOTAL_PRICE_DESC';
 
-const GRADE_TABS = ['1++등급', '1+등급', '1등급'] as const;
+const GRADE_TABS = ['1++', '1+', '1'] as const;
 
 const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
   { value: 'PRICE_PER_KG_ASC', label: 'kg당 단가 낮은 순' },
@@ -113,17 +120,16 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
     });
   }, [sourceItems, sourceRecords]);
 
-  // 6. 변환된 items를 등급별(1++, 1+, 1등급)로 그룹화 및 탭 목록 생성
+  // 6. 변환된 items를 등급별(1++, 1+, 1)로 그룹화 및 탭 목록 생성
   const groupedItems = useMemo(() => {
     const groups: Record<string, FormattedMarketItem[]> = {
-      '1++등급': [],
-      '1+등급': [],
-      '1등급': [],
+      '1++': [],
+      '1+': [],
+      '1': [],
     };
 
     items.forEach((item: FormattedMarketItem) => {
-      const grade = item.grade.endsWith('등급') ? item.grade : `${item.grade}등급`;
-      if (grade in groups) groups[grade].push(item);
+      if (item.grade in groups) groups[item.grade].push(item);
     });
 
     return groups;
@@ -365,11 +371,19 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                         </span>
                       )}
                     </div>
-                    <div className="pl-[var(--spacing-12)] text-right">
+                    <div className="min-w-0 overflow-hidden pl-[var(--spacing-12)] text-right">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">제조일/소비기한</p>
-                      <p className={`text-label ${isExpirySoon(item.expiresAt) ? 'text-[var(--color-text-red)] font-bold' : 'text-[var(--text-strong)]'}`}>
-                        {formatDate(item.manufacturedAt)} / {isExpirySoon(item.expiresAt) ? '⚠ ' : ''}{formatDate(item.expiresAt)}
-                      </p>
+                      <div className="flex min-w-0 flex-col items-end gap-0.5 overflow-hidden text-[12px] leading-5 tabular-nums">
+                        <span className="block w-full truncate text-[var(--text-strong)]" title={`제조일 ${formatDate(item.manufacturedAt)}`}>
+                          {formatDate(item.manufacturedAt)}
+                        </span>
+                        <span
+                          className={`block w-full truncate ${isExpirySoon(item.expiresAt) ? 'text-[var(--color-text-red)] font-bold' : 'text-[var(--text-strong)]'}`}
+                          title={`소비기한 ${formatDate(item.expiresAt)}`}
+                        >
+                          {isExpirySoon(item.expiresAt) ? '⚠ ' : ''}{formatDate(item.expiresAt)}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -385,7 +399,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                     </div>
                     <div className="pl-[var(--spacing-12)] text-right">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">판매가</p>
-                      <p className="text-label text-[var(--text-strong)]">
+                      <p className="text-xl font-black tracking-[-0.04em] tabular-nums whitespace-nowrap text-[var(--text-strong)]">
                         {item.totalPrice ? `${item.totalPrice.toLocaleString()}원` : '-'}
                       </p>
                     </div>

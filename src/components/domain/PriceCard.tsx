@@ -9,8 +9,7 @@ interface Props {
 }
 
 export function PriceCard({ item, onClick, id }: Props) {
-  // 등급 표시: 명세 포맷(1++, 1+, 1, 등외)에 "등급" 텍스트를 UI에서 붙입니다.
-  const gradeDisplay = item.grade ? `${item.grade}등급` : '-';
+  const gradeDisplay = item.grade ?? '-';
   // displayName이 명세상 필수 필드이므로 폴백 없이 직접 사용
   const nameDisplay = item.displayName;
   const expiryDate = item.expiresAt ? new Date(item.expiresAt) : null;
@@ -53,7 +52,7 @@ export function PriceCard({ item, onClick, id }: Props) {
         </div>
         <div className="text-right">
           <p className="text-caption text-[var(--text-muted)]">판매가</p>
-          <p className="text-body-lg font-bold text-[var(--color-text-red)]">
+          <p className="text-xl font-black tracking-tight tabular-nums text-[var(--color-text-red)]">
             {item.salePrice != null ? `${formatPrice(item.salePrice)}원` : '정보 없음'}
           </p>
           <Badge status={item.trendStatus ?? 'UNCHANGED'} value={item.changeAmount ?? 0} />
