@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
+import { Line, LineChart, ResponsiveContainer, Tooltip } from 'recharts';
 // 💡 훅(Hook): 특정 기능을 재사용 가능하도록 묶어놓은 함수. 음식점 주방의 '레시피 카드'와 같습니다.
 import { usePriceDetail } from '../../../hooks/usePriceDetail';
 import type { TrendStatus } from '../../../api/types/market';
@@ -463,27 +463,16 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
               >
                 <div className="mb-[var(--spacing-8)] flex items-baseline justify-between gap-[var(--spacing-8)]">
                   <h3 id="seven-day-price-title" className="text-label text-[var(--text-strong)]">최근 7일 가격 추이</h3>
-                  <p className="hidden text-xs text-[var(--text-muted)] sm:block">kg당 평균 시세</p>
                   {selectedChartPoint && (
-                    <p className="text-xs font-extrabold tabular-nums text-[var(--color-secondary)] sm:hidden">
+                    <p className="text-xs font-extrabold tabular-nums text-[var(--color-secondary)]">
                       {selectedChartPoint.label} · {Number(selectedChartPoint.price).toLocaleString()}원
                     </p>
                   )}
                 </div>
                 {chartData.length > 1 ? (
-                  <div className="h-28 w-full" role="img" aria-label="최근 7일 kg당 평균 시세 차트">
+                  <div className="h-24 w-full" role="img" aria-label="최근 7일 kg당 평균 시세 차트">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData} margin={{ top: 8, right: 18, left: 18, bottom: 0 }}>
-                        <XAxis
-                          dataKey="label"
-                          interval={0}
-                          minTickGap={0}
-                          axisLine={false}
-                          tickLine={false}
-                          height={22}
-                          padding={{ left: 4, right: 4 }}
-                          tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 700 }}
-                        />
+                      <LineChart data={chartData} margin={{ top: 8, right: 18, left: 18, bottom: 8 }}>
                         <Tooltip
                           formatter={(value) => [`${Number(value).toLocaleString()}원`, 'kg당 시세']}
                           labelFormatter={(_, payload) => payload[0]?.payload?.marketDate ?? ''}
@@ -512,7 +501,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                   </div>
                 )}
                 {chartData.length > 1 && (
-                  <div className="mt-[var(--spacing-8)] flex gap-[var(--spacing-4)] overflow-x-auto pb-[var(--spacing-4)] sm:hidden" aria-label="날짜별 시세 선택">
+                  <div className="mt-[var(--spacing-8)] flex gap-[var(--spacing-4)] overflow-x-auto pb-[var(--spacing-4)]" aria-label="날짜별 시세 선택">
                     {chartData.map((point) => {
                       const isSelected = selectedChartPoint?.marketDate === point.marketDate;
                       return (
@@ -520,9 +509,9 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                           key={point.marketDate}
                           type="button"
                           onClick={() => setSelectedChartDate(point.marketDate)}
-                          className="min-h-11 min-w-14 rounded-[var(--radius-sm)] px-[var(--spacing-8)] text-xs font-bold tabular-nums transition-colors"
+                          className="min-h-11 min-w-14 rounded-[var(--radius-sm)] px-[var(--spacing-8)] text-xs font-bold tabular-nums transition-colors sm:min-w-0 sm:flex-1"
                           style={{
-                            backgroundColor: isSelected ? 'var(--color-secondary)' : 'var(--color-surface)',
+                            backgroundColor: isSelected ? '#3b91c8' : 'var(--color-surface)',
                             color: isSelected ? '#ffffff' : 'var(--text-muted)',
                           }}
                           aria-pressed={isSelected}
