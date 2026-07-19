@@ -357,7 +357,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                   }`}
                 >
                   {/* 1행: 상품명(1·2열 병합) | 제조일 */}
-                  <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(64px,0.65fr)_minmax(104px,1fr)] border-b border-[var(--color-divider)] pb-[var(--spacing-12)]">
+                  <div className="grid grid-cols-3 border-b border-[var(--color-divider)] pb-[var(--spacing-12)]">
                     <div className="col-span-2 min-w-0 pr-[var(--spacing-12)] border-r border-[var(--color-divider)]">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">상품명</p>
                       <p className="text-label text-[var(--text-strong)] break-words leading-snug">{item.itemName}</p>
@@ -371,7 +371,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                   </div>
 
                   {/* 2행: 등급 | 월령 | 소비기한 */}
-                  <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(64px,0.65fr)_minmax(104px,1fr)] border-b border-[var(--color-divider)] py-[var(--spacing-12)]">
+                  <div className="grid grid-cols-3 border-b border-[var(--color-divider)] py-[var(--spacing-12)]">
                     <div className="min-w-0 pr-[var(--spacing-12)] border-r border-[var(--color-divider)]">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">등급</p>
                       <p className="text-label text-[var(--text-strong)]">{item.grade}</p>
@@ -398,7 +398,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                   </div>
 
                   {/* 3행: kg당 단가 | 중량 | 판매가 */}
-                  <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(64px,0.65fr)_minmax(104px,1fr)] pt-[var(--spacing-16)]">
+                  <div className="grid grid-cols-3 pt-[var(--spacing-16)]">
                     <div className="pr-[var(--spacing-12)] border-r border-[var(--color-divider)]">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">kg당 단가</p>
                       <p className="text-label text-[var(--text-strong)]">{item.pricePerKg.toLocaleString()}원</p>

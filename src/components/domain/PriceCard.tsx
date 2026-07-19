@@ -25,7 +25,7 @@ export function PriceCard({ item, onClick, id }: Props) {
       onClick={() => onClick && onClick(item.itemId)}  // itemId: 명세 기준 식별자
       className="w-full text-left bg-[var(--color-surface)] p-5 rounded-[var(--radius-xl)] border border-[var(--color-divider)] shadow-soft active:scale-[0.98] active:bg-[#f5f5f5] transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
     >
-      <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(64px,0.65fr)_minmax(104px,1fr)] border-b border-[var(--color-divider)] pb-3">
+      <div className="grid grid-cols-3 border-b border-[var(--color-divider)] pb-3">
         <div className="col-span-2 min-w-0 pr-3 border-r border-[var(--color-divider)]">
           <p className="text-caption text-[var(--text-light)] mb-1">상품명</p>
           <p className="text-label font-bold leading-snug break-words text-[var(--text-strong)]">{nameDisplay}</p>
@@ -38,7 +38,7 @@ export function PriceCard({ item, onClick, id }: Props) {
         </div>
       </div>
 
-      <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(64px,0.65fr)_minmax(104px,1fr)] border-b border-[var(--color-divider)] py-3">
+      <div className="grid grid-cols-3 border-b border-[var(--color-divider)] py-3">
         <div className="min-w-0 pr-3 border-r border-[var(--color-divider)]">
           <p className="text-caption text-[var(--text-light)] mb-1">등급</p>
           <p className="text-label font-bold text-[var(--text-strong)]">{gradeDisplay}</p>
@@ -64,7 +64,7 @@ export function PriceCard({ item, onClick, id }: Props) {
         </div>
       </div>
 
-      <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(64px,0.65fr)_minmax(104px,1fr)] pt-4">
+      <div className="grid grid-cols-3 pt-4">
         <div className="pr-3 border-r border-[var(--color-divider)]">
           <p className="text-caption text-[var(--text-light)] mb-1">kg당 단가</p>
           <p className="text-label font-bold text-[var(--text-strong)]">
