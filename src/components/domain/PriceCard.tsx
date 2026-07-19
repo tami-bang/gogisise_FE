@@ -26,13 +26,9 @@ export function PriceCard({ item, onClick, id }: Props) {
       className="w-full text-left bg-[var(--color-surface)] p-5 rounded-[var(--radius-xl)] border border-[var(--color-divider)] shadow-soft active:scale-[0.98] active:bg-[#f5f5f5] transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
     >
       <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(64px,0.65fr)_minmax(104px,1fr)] border-b border-[var(--color-divider)] pb-3">
-        <div className="min-w-0 pr-3 border-r border-[var(--color-divider)]">
+        <div className="col-span-2 min-w-0 pr-3 border-r border-[var(--color-divider)]">
           <p className="text-caption text-[var(--text-light)] mb-1">상품명</p>
           <p className="text-label font-bold leading-snug break-words text-[var(--text-strong)]">{nameDisplay}</p>
-        </div>
-        <div className="px-3 border-r border-[var(--color-divider)]">
-          <p className="text-caption text-[var(--text-light)] mb-1">등급</p>
-          <p className="text-label font-bold text-[var(--text-strong)]">{gradeDisplay}</p>
         </div>
         <div className="min-w-0 overflow-hidden pl-3 text-right">
           <p className="text-caption text-[var(--text-light)] mb-1">제조일</p>
@@ -44,6 +40,10 @@ export function PriceCard({ item, onClick, id }: Props) {
 
       <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(64px,0.65fr)_minmax(104px,1fr)] border-b border-[var(--color-divider)] py-3">
         <div className="min-w-0 pr-3 border-r border-[var(--color-divider)]">
+          <p className="text-caption text-[var(--text-light)] mb-1">등급</p>
+          <p className="text-label font-bold text-[var(--text-strong)]">{gradeDisplay}</p>
+        </div>
+        <div className="min-w-0 px-3 border-r border-[var(--color-divider)]">
           <p className="text-caption text-[var(--text-light)] mb-1">월령</p>
           {item.species === 'BEEF' && item.ageMonths != null ? (
             <span className="inline-block px-2 py-0.5 rounded-[var(--radius-sm)] bg-[#edf6fc] text-caption font-bold whitespace-nowrap text-[var(--color-secondary)]">
@@ -53,7 +53,6 @@ export function PriceCard({ item, onClick, id }: Props) {
             <span className="text-label text-[var(--text-strong)]">-</span>
           )}
         </div>
-        <div className="px-3 border-r border-[var(--color-divider)]" aria-hidden="true" />
         <div className="min-w-0 overflow-hidden pl-3 text-right">
           <p className="text-caption text-[var(--text-light)] mb-1">소비기한</p>
           <p

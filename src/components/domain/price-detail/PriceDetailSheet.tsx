@@ -356,15 +356,11 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                     item.detailUrl ? 'hover:border-[var(--color-secondary)] hover:shadow-medium cursor-pointer active:scale-[0.98]' : ''
                   }`}
                 >
-                  {/* 1행: 상품명 | 등급 | 제조일 */}
+                  {/* 1행: 상품명(1·2열 병합) | 제조일 */}
                   <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(64px,0.65fr)_minmax(104px,1fr)] border-b border-[var(--color-divider)] pb-[var(--spacing-12)]">
-                    <div className="min-w-0 pr-[var(--spacing-12)] border-r border-[var(--color-divider)]">
+                    <div className="col-span-2 min-w-0 pr-[var(--spacing-12)] border-r border-[var(--color-divider)]">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">상품명</p>
                       <p className="text-label text-[var(--text-strong)] break-words leading-snug">{item.itemName}</p>
-                    </div>
-                    <div className="px-[var(--spacing-12)] border-r border-[var(--color-divider)]">
-                      <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">등급</p>
-                      <p className="text-label text-[var(--text-strong)]">{item.grade}</p>
                     </div>
                     <div className="min-w-0 overflow-hidden pl-[var(--spacing-12)] text-right">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">제조일</p>
@@ -374,9 +370,13 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                     </div>
                   </div>
 
-                  {/* 2행: 월령 | 여백 | 소비기한 */}
+                  {/* 2행: 등급 | 월령 | 소비기한 */}
                   <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(64px,0.65fr)_minmax(104px,1fr)] border-b border-[var(--color-divider)] py-[var(--spacing-12)]">
                     <div className="min-w-0 pr-[var(--spacing-12)] border-r border-[var(--color-divider)]">
+                      <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">등급</p>
+                      <p className="text-label text-[var(--text-strong)]">{item.grade}</p>
+                    </div>
+                    <div className="min-w-0 px-[var(--spacing-12)] border-r border-[var(--color-divider)]">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">월령</p>
                       {item.ageInMonths != null ? (
                         <span className="inline-block px-2 py-0.5 rounded-[var(--radius-sm)] bg-[#edf6fc] text-[var(--color-secondary)] text-caption font-bold whitespace-nowrap">
@@ -386,7 +386,6 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                         <span className="text-label text-[var(--text-strong)]">-</span>
                       )}
                     </div>
-                    <div className="px-[var(--spacing-12)] border-r border-[var(--color-divider)]" aria-hidden="true" />
                     <div className="min-w-0 overflow-hidden pl-[var(--spacing-12)] text-right">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">소비기한</p>
                       <p
