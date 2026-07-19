@@ -113,6 +113,9 @@ export interface SourceItem {
   brand: string | null;   // 브랜드명
   detailUrl: string;      // 금천미트 상품 상세 URL
   price: number;          // 현재 가격
+  previousPrice?: number | null;
+  changeAmount?: number | null;
+  trendStatus?: TrendStatus | null;
   ageInMonths?: number | null;
   manufacturedAt?: string | null;
   expiresAt?: string | null;
@@ -135,6 +138,7 @@ export interface AggregatedPriceDetail {
   lowestPrice: number;          // 명세: lowestPrice  (이전: minPrice)
   participantCount: number;     // 명세: participantCount (이전: includedCount)
   lastCollectedAt?: string | null; // 상세 매물의 마지막 수집 완료 일시
+  priceHistory?: PriceHistoryPoint[];
 
   // 원본 매물 리스트
   sourceRecords: SourcePriceRecord[];

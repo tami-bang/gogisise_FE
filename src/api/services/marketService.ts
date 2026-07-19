@@ -75,12 +75,16 @@ const normalizePriceDetail = (detail: AggregatedPriceDetail): AggregatedPriceDet
   lowestPrice: detail.lowestPrice ?? 0,
   participantCount: detail.participantCount ?? 0,
   lastCollectedAt: detail.lastCollectedAt ?? null,
+  priceHistory: Array.isArray(detail.priceHistory) ? detail.priceHistory : [],
   sourceRecords: Array.isArray(detail.sourceRecords)
     ? detail.sourceRecords.map(normalizeSourceRecord)
     : [],
   sourceItems: Array.isArray(detail.sourceItems)
     ? detail.sourceItems.map((item) => ({
         ...item,
+        previousPrice: item.previousPrice ?? null,
+        changeAmount: item.changeAmount ?? null,
+        trendStatus: normalizeTrendStatus(item.trendStatus),
         ageInMonths: item.ageInMonths ?? null,
         weightKg: item.weightKg ?? null,
         salePrice: item.salePrice ?? null,

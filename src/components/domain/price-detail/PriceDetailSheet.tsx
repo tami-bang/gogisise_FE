@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 // 💡 훅(Hook): 특정 기능을 재사용 가능하도록 묶어놓은 함수. 음식점 주방의 '레시피 카드'와 같습니다.
 import { usePriceDetail } from '../../../hooks/usePriceDetail';
+import type { TrendStatus } from '../../../api/types/market';
 
 interface PriceDetailSheetProps {
   isOpen: boolean;
@@ -74,7 +76,24 @@ interface FormattedMarketItem {
   manufacturedAt?: string | null;
   expiresAt?: string | null;
   detailUrl?: string;
+  changeAmount?: number | null;
+  totalChangeAmount?: number | null;
+  trendStatus?: TrendStatus | null;
 }
+
+const getTrendView = (changeAmount?: number | null, trendStatus?: TrendStatus | null) => {
+  const status = trendStatus ?? (changeAmount == null ? 'UNCHANGED' : changeAmount > 0 ? 'UP' : changeAmount < 0 ? 'DOWN' : 'UNCHANGED');
+  return {
+    symbol: status === 'UP' ? '▲' : status === 'DOWN' ? '▼' : '—',
+    colorClass: status === 'UP'
+      ? 'text-[var(--color-text-red)]'
+      : status === 'DOWN'
+        ? 'text-[var(--color-secondary)]'
+        : 'text-[var(--text-muted)]',
+  };
+};
+
+const formatChange = (value?: number | null) => `${Math.abs(value ?? 0).toLocaleString()}원`;
 
 type SortOption =
   | 'PRICE_PER_KG_ASC'
@@ -121,6 +140,9 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
         const weight = si.weightKg || extractWeight(si.name) || 0;
         const pricePerKg = si.price || 0;
         const totalPrice = si.salePrice || (weight > 0 ? Math.round(pricePerKg * weight) : 0);
+        const totalChangeAmount = si.changeAmount != null && weight > 0
+          ? Math.round(si.changeAmount * weight)
+          : null;
 
         return {
           goodsNo: si.itemId,
@@ -133,6 +155,9 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
           manufacturedAt: si.manufacturedAt,
           expiresAt: si.expiresAt,
           detailUrl: si.detailUrl,
+          changeAmount: si.changeAmount,
+          totalChangeAmount,
+          trendStatus: si.trendStatus,
         };
       });
     }
@@ -230,15 +255,36 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
     });
   }, [activeTab, groupedItems, items, sortOption]);
   const stats = useMemo(() => {
-    if (currentItems.length === 0) return { avg: 0, min: 0, max: 0, count: 0 };
+    if (currentItems.length === 0) return { avg: 0, min: 0, max: 0, count: 0, changeAmount: 0, trendStatus: 'UNCHANGED' as TrendStatus };
     const prices = currentItems.map((item: FormattedMarketItem) => item.pricePerKg);
+    const changes = currentItems
+      .map((item) => item.changeAmount)
+      .filter((value): value is number => typeof value === 'number');
+    const changeAmount = changes.length > 0
+      ? Math.round(changes.reduce((sum, value) => sum + value, 0) / changes.length)
+      : detail?.changeAmount ?? 0;
     return {
       avg: Math.round(prices.reduce((a: number, b: number) => a + b, 0) / prices.length),
       min: Math.min(...prices),
       max: Math.max(...prices),
       count: currentItems.length,
+      changeAmount,
+      trendStatus: changeAmount > 0 ? 'UP' as TrendStatus : changeAmount < 0 ? 'DOWN' as TrendStatus : 'UNCHANGED' as TrendStatus,
     };
-  }, [currentItems]);
+  }, [currentItems, detail?.changeAmount]);
+
+  const chartData = useMemo(
+    () => (detail?.priceHistory ?? [])
+      .filter((point) => typeof point.price === 'number')
+      .slice(-7)
+      .map((point, index, points) => ({
+        ...point,
+        label: index === points.length - 1
+          ? '오늘'
+          : new Intl.DateTimeFormat('ko-KR', { weekday: 'short', timeZone: 'Asia/Seoul' }).format(new Date(`${point.marketDate}T00:00:00+09:00`)),
+      })),
+    [detail?.priceHistory]
+  );
 
   if (!isOpen) return null;
 
@@ -383,9 +429,15 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
             {/* 선택된 등급의 평균가 요약 카드 */}
             <div className="bg-gray-50 rounded-xl p-6 mb-6 text-center">
               <p className="text-gray-500 mb-2">{detail?.displayName || '부위'} 평균 시세 (1kg)</p>
-              <p className="text-3xl font-extrabold text-gray-900">
-                {stats.avg.toLocaleString()}원
-              </p>
+              <div className="flex flex-wrap items-baseline justify-center gap-x-[var(--spacing-12)] gap-y-[var(--spacing-4)]">
+                <p className="text-3xl font-extrabold tabular-nums text-gray-900">
+                  {stats.avg.toLocaleString()}원
+                </p>
+                <p className={`text-base font-extrabold tabular-nums ${getTrendView(stats.changeAmount, stats.trendStatus).colorClass}`}>
+                  <span aria-hidden="true">{getTrendView(stats.changeAmount, stats.trendStatus).symbol}</span>{' '}
+                  <span className="sr-only">전일 대비 </span>{formatChange(stats.changeAmount)}
+                </p>
+              </div>
               <div className="flex justify-between border-t border-gray-200 mt-4 pt-4 text-sm">
                 <div className="text-left flex-1">
                   <p className="text-gray-400">최저가</p>
@@ -435,13 +487,13 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                     </div>
                   </div>
 
-                  {/* 2행: 등급 | 월령 | 소비기한 */}
-                  <div className="grid grid-cols-3 border-b border-[var(--color-divider)] py-[var(--spacing-12)]">
-                    <div className="min-w-0 pr-[var(--spacing-12)] border-r border-[var(--color-divider)]">
+                  {/* 2행: 등급 | 월령 | 중량 | 소비기한 */}
+                  <div className="grid grid-cols-4 border-b border-[var(--color-divider)] py-[var(--spacing-12)]">
+                    <div className="min-w-0 pr-[var(--spacing-8)] border-r border-[var(--color-divider)]">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">등급</p>
                       <p className="text-label text-[var(--text-strong)]">{item.grade === '기타' ? '-' : item.grade}</p>
                     </div>
-                    <div className="min-w-0 px-[var(--spacing-12)] border-r border-[var(--color-divider)]">
+                    <div className="min-w-0 px-[var(--spacing-8)] border-r border-[var(--color-divider)] text-center">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">월령</p>
                       {item.ageInMonths != null ? (
                         <span className="inline-block px-2 py-0.5 rounded-[var(--radius-sm)] bg-[#edf6fc] text-[var(--color-secondary)] text-caption font-bold whitespace-nowrap">
@@ -451,10 +503,14 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                         <span className="text-label text-[var(--text-strong)]">-</span>
                       )}
                     </div>
-                    <div className="min-w-0 overflow-hidden pl-[var(--spacing-12)] text-right">
+                    <div className="min-w-0 px-[var(--spacing-8)] border-r border-[var(--color-divider)] text-center">
+                      <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">중량</p>
+                      <p className="text-label text-[var(--text-strong)] whitespace-nowrap">{item.weight ? `${item.weight}kg` : '-'}</p>
+                    </div>
+                    <div className="min-w-0 overflow-hidden pl-[var(--spacing-8)] text-right">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">소비기한</p>
                       <p
-                        className={`w-full truncate text-base font-bold leading-snug tabular-nums ${isExpirySoon(item.expiresAt) ? 'text-[var(--color-text-red)]' : 'text-[var(--text-strong)]'}`}
+                        className={`w-full break-words text-sm font-bold leading-snug tabular-nums ${isExpirySoon(item.expiresAt) ? 'text-[var(--color-text-red)]' : 'text-[var(--text-strong)]'}`}
                         title={formatDate(item.expiresAt)}
                       >
                         {isExpirySoon(item.expiresAt) ? '⚠ ' : ''}{formatDate(item.expiresAt)}
@@ -462,21 +518,23 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                     </div>
                   </div>
 
-                  {/* 3행: kg당 단가 | 중량 | 판매가 */}
-                  <div className="grid grid-cols-3 pt-[var(--spacing-16)]">
+                  {/* 3행: kg당 단가 | 판매가와 전일 대비 변동 */}
+                  <div className="grid grid-cols-2 pt-[var(--spacing-16)]">
                     <div className="pr-[var(--spacing-12)] border-r border-[var(--color-divider)]">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">kg당 단가</p>
                       <p className="text-label text-[var(--text-strong)]">{item.pricePerKg.toLocaleString()}원</p>
                     </div>
-                    <div className="px-[var(--spacing-12)] border-r border-[var(--color-divider)] text-center">
-                      <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">중량</p>
-                      <p className="text-label text-[var(--text-strong)]">{item.weight ? `${item.weight}kg` : '-'}</p>
-                    </div>
-                    <div className="pl-[var(--spacing-12)] text-right">
+                    <div className="min-w-0 pl-[var(--spacing-12)] text-right">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">판매가</p>
-                      <p className="text-xl font-black tracking-[-0.04em] tabular-nums whitespace-nowrap text-[var(--text-strong)]">
-                        {item.totalPrice ? `${item.totalPrice.toLocaleString()}원` : '-'}
-                      </p>
+                      <div className="flex flex-wrap items-baseline justify-end gap-x-[var(--spacing-8)] gap-y-[var(--spacing-4)]">
+                        <p className="text-xl font-black tracking-[-0.04em] tabular-nums whitespace-nowrap text-[var(--text-strong)]">
+                          {item.totalPrice ? `${item.totalPrice.toLocaleString()}원` : '-'}
+                        </p>
+                        <p className={`text-xs font-extrabold tabular-nums whitespace-nowrap ${getTrendView(item.totalChangeAmount, item.trendStatus).colorClass}`}>
+                          <span aria-hidden="true">{getTrendView(item.totalChangeAmount, item.trendStatus).symbol}</span>{' '}
+                          <span className="sr-only">전일 대비 </span>{formatChange(item.totalChangeAmount)}
+                        </p>
+                      </div>
                     </div>
                   </div>
                   {item.detailUrl && (
@@ -487,6 +545,53 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                 </a>
               ))}
             </div>
+
+            <section
+              aria-labelledby="seven-day-price-title"
+              className="mb-[var(--spacing-8)] rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-[var(--spacing-20)] shadow-soft"
+            >
+              <div className="mb-[var(--spacing-16)]">
+                <h3 id="seven-day-price-title" className="text-title text-[var(--text-strong)]">최근 7일 가격 추이</h3>
+                <p className="mt-[var(--spacing-4)] text-caption text-[var(--text-muted)]">kg당 평균 시세의 흐름입니다.</p>
+              </div>
+              {chartData.length > 1 ? (
+                <div className="h-52 w-full" role="img" aria-label="최근 7일 kg당 평균 시세 차트">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData} margin={{ top: 12, right: 4, left: 4, bottom: 0 }}>
+                      <XAxis
+                        dataKey="label"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: 'var(--text-muted)', fontSize: 13, fontWeight: 700 }}
+                      />
+                      <Tooltip
+                        cursor={{ fill: 'var(--color-surface-soft)' }}
+                        formatter={(value) => [`${Number(value).toLocaleString()}원`, 'kg당 시세']}
+                        labelFormatter={(_, payload) => payload[0]?.payload?.marketDate ?? ''}
+                        contentStyle={{
+                          border: '1px solid var(--color-border)',
+                          borderRadius: 'var(--radius-md)',
+                          boxShadow: 'var(--shadow-soft)',
+                          color: 'var(--text-strong)',
+                        }}
+                      />
+                      <Bar dataKey="price" radius={[8, 8, 0, 0]} maxBarSize={34}>
+                        {chartData.map((point, index) => (
+                          <Cell
+                            key={point.marketDate}
+                            fill={index === chartData.length - 1 ? 'var(--color-primary)' : 'var(--color-secondary)'}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="flex min-h-32 items-center justify-center rounded-[var(--radius-lg)] bg-[var(--color-surface-soft)] px-[var(--spacing-16)] text-center text-caption text-[var(--text-muted)]">
+                  가격 흐름을 표시할 이력이 아직 충분하지 않습니다.
+                </div>
+              )}
+            </section>
           </>
         )}
       </div>
