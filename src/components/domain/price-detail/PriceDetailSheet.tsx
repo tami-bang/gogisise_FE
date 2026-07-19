@@ -64,6 +64,7 @@ type SortOption =
   | 'TOTAL_PRICE_DESC';
 
 const GRADE_TABS = ['1++', '1+', '1'] as const;
+const ALL_ITEMS_TAB = '전체';
 
 const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
   { value: 'PRICE_PER_KG_ASC', label: 'kg당 단가 낮은 순' },
@@ -142,12 +143,23 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
     return groups;
   }, [items]);
 
-  // 응답에 기본값인 1++ 매물이 없더라도 데이터가 존재하는 첫 등급 탭을 선택합니다.
+  const hasGradedItems = useMemo(
+    () => GRADE_TABS.some((grade) => groupedItems[grade].length > 0),
+    [groupedItems]
+  );
+  const visibleTabs = hasGradedItems ? GRADE_TABS : [ALL_ITEMS_TAB];
+
+  // 한우는 실제 등급 탭을 사용하고, 등급 체계가 없는 한돈은 전체 탭에서
+  // ACTIVE 매물을 그대로 노출합니다. NULL 등급을 1등급으로 위장하지 않습니다.
   useEffect(() => {
-    if (groupedItems[activeTab]?.length > 0) return;
+    if (!hasGradedItems) {
+      if (activeTab !== ALL_ITEMS_TAB) setActiveTab(ALL_ITEMS_TAB);
+      return;
+    }
+    if (activeTab !== ALL_ITEMS_TAB && groupedItems[activeTab]?.length > 0) return;
     const firstAvailableGrade = GRADE_TABS.find((grade) => groupedItems[grade].length > 0);
     if (firstAvailableGrade) setActiveTab(firstAvailableGrade);
-  }, [activeTab, groupedItems]);
+  }, [activeTab, groupedItems, hasGradedItems]);
 
   // 8. ESC 키 → 닫기 바인딩
   useEffect(() => {
@@ -170,7 +182,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
 
   // 10. 현재 선택된 탭(등급)의 실시간 통계 계산
   const currentItems = useMemo(() => {
-    const gradeItems = groupedItems[activeTab] || [];
+    const gradeItems = activeTab === ALL_ITEMS_TAB ? items : groupedItems[activeTab] || [];
     const sortableItems = sortOption === 'AGE_DESC'
       ? gradeItems.filter((item) => item.ageInMonths == null || item.ageInMonths <= 40)
       : gradeItems;
@@ -190,7 +202,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
       if (bValue == null) return -1;
       return (aValue - bValue) * direction;
     });
-  }, [activeTab, groupedItems, sortOption]);
+  }, [activeTab, groupedItems, items, sortOption]);
   const stats = useMemo(() => {
     if (currentItems.length === 0) return { avg: 0, min: 0, max: 0, count: 0 };
     const prices = currentItems.map((item: FormattedMarketItem) => item.pricePerKg);
@@ -306,7 +318,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
           <>
             {/* 상단 등급 탭 버튼 */}
             <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
-              {GRADE_TABS.map((tab) => (
+              {visibleTabs.map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -317,7 +329,9 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                   }`}
                 >
                   {tab}{' '}
-                  <span className="text-sm font-normal opacity-80">({groupedItems[tab]?.length}건)</span>
+                  <span className="text-sm font-normal opacity-80">
+                    ({tab === ALL_ITEMS_TAB ? items.length : groupedItems[tab]?.length}건)
+                  </span>
                 </button>
               ))}
             </div>
@@ -388,7 +402,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                   <div className="grid grid-cols-3 border-b border-[var(--color-divider)] py-[var(--spacing-12)]">
                     <div className="min-w-0 pr-[var(--spacing-12)] border-r border-[var(--color-divider)]">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">등급</p>
-                      <p className="text-label text-[var(--text-strong)]">{item.grade}</p>
+                      <p className="text-label text-[var(--text-strong)]">{item.grade === '기타' ? '-' : item.grade}</p>
                     </div>
                     <div className="min-w-0 px-[var(--spacing-12)] border-r border-[var(--color-divider)]">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">월령</p>
