@@ -40,6 +40,11 @@ const normalizePriceItem = (item: PriceItem): PriceItem => ({
   previousPrice: item.previousPrice ?? null,
   changeAmount: item.changeAmount ?? null,
   trendStatus: normalizeTrendStatus(item.trendStatus),
+  ageMonths: item.ageMonths ?? null,
+  weightKg: item.weightKg ?? null,
+  salePrice: item.salePrice ?? null,
+  manufacturedAt: item.manufacturedAt ?? null,
+  expiresAt: item.expiresAt ?? null,
   currency: item.currency ?? 'KRW',
   priceUnit: item.priceUnit ?? 'KRW_PER_KG',
   isFavorite: item.isFavorite ?? false,
@@ -71,6 +76,16 @@ const normalizePriceDetail = (detail: AggregatedPriceDetail): AggregatedPriceDet
   participantCount: detail.participantCount ?? 0,
   sourceRecords: Array.isArray(detail.sourceRecords)
     ? detail.sourceRecords.map(normalizeSourceRecord)
+    : [],
+  sourceItems: Array.isArray(detail.sourceItems)
+    ? detail.sourceItems.map((item) => ({
+        ...item,
+        ageInMonths: item.ageInMonths ?? null,
+        weightKg: item.weightKg ?? null,
+        salePrice: item.salePrice ?? null,
+        manufacturedAt: item.manufacturedAt ?? null,
+        expiresAt: item.expiresAt ?? null,
+      }))
     : [],
   animalType: detail.animalType ?? 'BEEF',
   storageType: detail.storageType ?? 'CHILLED',

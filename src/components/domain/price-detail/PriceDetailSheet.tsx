@@ -17,11 +17,20 @@ const extractGrade = (name: string) => {
   return '기타';
 };
 
-// 2. 상품명에서 중량(kg)을 동적으로 낚아채는 정규식 유틸 함수
-// 💡 정규식(Regex): '(숫자)+(kg)' 패턴을 탐지하는 필터. 광화문 CCTV가 번호판만 인식하는 것과 같습니다.
 const extractWeight = (name: string): number | null => {
   const match = name.match(/(\d+(?:\.\d+)?)\s*kg/i);
   return match ? parseFloat(match[1]) : null;
+};
+
+const formatDate = (value?: string | null) =>
+  value ? new Intl.DateTimeFormat('ko-KR').format(new Date(value)) : '-';
+
+const getDaysUntilExpiry = (value?: string | null) =>
+  value ? Math.ceil((new Date(value).getTime() - Date.now()) / 86_400_000) : null;
+
+const isExpirySoon = (value?: string | null) => {
+  const days = getDaysUntilExpiry(value);
+  return days !== null && days >= 0 && days <= 7;
 };
 
 // 3. 화면에서 사용할 상품 데이터의 타입 명세서(Interface)
@@ -350,11 +359,16 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                     <div className="px-[var(--spacing-12)] border-x border-[var(--color-divider)]">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">등급</p>
                       <p className="text-label text-[var(--text-strong)]">{item.grade}</p>
+                      {item.ageInMonths != null && (
+                        <span className="inline-block mt-1 px-2 py-0.5 rounded-[var(--radius-sm)] bg-[#edf6fc] text-[var(--color-secondary)] text-caption font-bold">
+                          {item.ageInMonths}개월
+                        </span>
+                      )}
                     </div>
                     <div className="pl-[var(--spacing-12)] text-right">
                       <p className="text-caption text-[var(--text-light)] mb-[var(--spacing-4)]">제조일/소비기한</p>
-                      <p className="text-label text-[var(--text-strong)]">
-                        {item.manufacturedAt || '-'} / {item.expiresAt || '-'}
+                      <p className={`text-label ${isExpirySoon(item.expiresAt) ? 'text-[var(--color-text-red)] font-bold' : 'text-[var(--text-strong)]'}`}>
+                        {formatDate(item.manufacturedAt)} / {isExpirySoon(item.expiresAt) ? '⚠ ' : ''}{formatDate(item.expiresAt)}
                       </p>
                     </div>
                   </div>

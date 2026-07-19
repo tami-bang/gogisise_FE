@@ -40,6 +40,11 @@ export interface PriceItem {
   category: string;                  // 부위 그룹명 (예: "안심")
   displayName: string;               // 정제된 화면 표시명 (예: "안심 1++", "삼겹(암)") — 필수
   grade: Grade | null;               // 등급 (한돈 부산물 등은 null 허용)
+  ageMonths?: number | null;
+  weightKg?: number | null;
+  salePrice?: number | null;
+  manufacturedAt?: string | null;
+  expiresAt?: string | null;
 
   // 검색 — Nullable ❌ (빈 문자열 "" 보장)
   searchKeywords: string;            // 클라이언트 검색 인덱스
