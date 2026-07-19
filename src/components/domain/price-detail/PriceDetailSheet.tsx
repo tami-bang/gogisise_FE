@@ -147,7 +147,12 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
     () => GRADE_TABS.some((grade) => groupedItems[grade].length > 0),
     [groupedItems]
   );
-  const visibleTabs = hasGradedItems ? GRADE_TABS : [ALL_ITEMS_TAB];
+  const hasUngradedItems = items.some((item) => item.grade === '기타');
+  const visibleTabs = !hasGradedItems
+    ? [ALL_ITEMS_TAB]
+    : hasUngradedItems
+      ? [ALL_ITEMS_TAB, ...GRADE_TABS]
+      : GRADE_TABS;
 
   // 한우는 실제 등급 탭을 사용하고, 등급 체계가 없는 한돈은 전체 탭에서
   // ACTIVE 매물을 그대로 노출합니다. NULL 등급을 1등급으로 위장하지 않습니다.
