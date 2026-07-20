@@ -268,10 +268,10 @@ export function AllPricesPage() {
         </main>
       </div>
 
-      {/* 플로팅 최상단 이동 버튼 (푸터 탭바와 절대 겹치지 않도록 Y축 높이를 140px 위로 확실히 격상) */}
+      {/* 플로팅 최상단 이동 버튼 (푸터와 겹치지 않으면서 너무 붕 뜨지 않도록 최적의 중간 높이 112px 지정) */}
       <div 
         className="absolute right-5 z-[99]"
-        style={{ bottom: '140px' }}
+        style={{ bottom: '112px' }}
       >
         <button
           onClick={scrollToTop}
