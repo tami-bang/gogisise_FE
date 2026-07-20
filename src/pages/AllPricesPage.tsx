@@ -56,15 +56,6 @@ export function AllPricesPage() {
     scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const scrollToBottom = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({
-        top: scrollContainerRef.current.scrollHeight,
-        behavior: 'smooth',
-      });
-    }
-  };
-
   // 카테고리 로드
   const fetchCategoryTree = async () => {
     setLoading(true);
@@ -277,8 +268,8 @@ export function AllPricesPage() {
         </main>
       </div>
 
-      {/* 플로팅 스크롤 버튼 세트 */}
-      <div className="absolute bottom-24 right-5 z-40 flex flex-col gap-2">
+      {/* 플로팅 최상단 이동 버튼 (푸터 위에 겹치지 않게 bottom-32로 넉넉하게 위로 띄움) */}
+      <div className="absolute bottom-32 right-5 z-40">
         <button
           onClick={scrollToTop}
           className="w-10 h-10 rounded-full bg-[var(--color-surface)] border border-[var(--color-divider)] shadow-soft text-[var(--color-secondary)] flex items-center justify-center active:scale-95 hover:bg-[var(--color-surface-soft)] transition-all duration-200"
@@ -286,15 +277,6 @@ export function AllPricesPage() {
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="18 15 12 9 6 15"></polyline>
-          </svg>
-        </button>
-        <button
-          onClick={scrollToBottom}
-          className="w-10 h-10 rounded-full bg-[var(--color-surface)] border border-[var(--color-divider)] shadow-soft text-[var(--color-secondary)] flex items-center justify-center active:scale-95 hover:bg-[var(--color-surface-soft)] transition-all duration-200"
-          aria-label="최하단으로 이동"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="6 9 12 15 18 9"></polyline>
           </svg>
         </button>
       </div>

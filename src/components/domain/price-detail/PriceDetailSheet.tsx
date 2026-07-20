@@ -138,15 +138,6 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
     scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const scrollToBottom = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({
-        top: scrollContainerRef.current.scrollHeight,
-        behavior: 'smooth',
-      });
-    }
-  };
-
   // 5. API 응답(detail.sourceItems)을 화면 렌더링용 규격으로 변환 + 중량/최종가 산출
   // 💡 useMemo: 데이터가 바뀔 때만 재계산하는 성능 최적화 훅. 계산기가 입력값이 같으면 다시 계산 안 하는 것과 같습니다.
   const items = useMemo<FormattedMarketItem[]>(() => {
@@ -637,8 +628,8 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
         )}
         </div>
 
-        {/* 모달 전용 플로팅 스크롤 버튼 세트 (스크롤바 영역과 겹치지 않게 right-8로 미세 조정) */}
-        <div className="absolute bottom-6 right-8 z-20 flex flex-col gap-2">
+        {/* 모달 전용 플로팅 최상단 이동 버튼 (스크롤바 영역과 겹치지 않게 right-8로 미세 조정) */}
+        <div className="absolute bottom-6 right-8 z-20">
           <button
             onClick={scrollToTop}
             className="w-10 h-10 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] shadow-medium text-[var(--color-secondary)] flex items-center justify-center active:scale-95 hover:bg-[var(--color-surface-soft)] transition-all duration-200"
@@ -646,15 +637,6 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="18 15 12 9 6 15"></polyline>
-            </svg>
-          </button>
-          <button
-            onClick={scrollToBottom}
-            className="w-10 h-10 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] shadow-medium text-[var(--color-secondary)] flex items-center justify-center active:scale-95 hover:bg-[var(--color-surface-soft)] transition-all duration-200"
-            aria-label="최하단으로 이동"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           </button>
         </div>
