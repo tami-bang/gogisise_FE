@@ -328,7 +328,7 @@ export function MainPage() {
               )}
             </div>
 
-            <main className="w-full flex-1 flex flex-col pb-[var(--spacing-16)] px-5">
+            <main className="w-full flex-1 flex flex-col pb-[var(--spacing-16)]">
               <div ref={listTopRef} />
 
               <div className="flex justify-between items-end mb-[var(--spacing-16)]">
@@ -398,23 +398,24 @@ export function MainPage() {
               </div>
             </main>
 
-            {/* 플로팅 최상단 이동 버튼 (푸터와 겹치지 않으면서 너무 붕 뜨지 않도록 최적의 중간 높이 112px 지정) */}
-            <div 
-              className="absolute right-5 z-[99]"
-              style={{ bottom: '112px' }}
-            >
-              <button
-                onClick={scrollToTop}
-                className="w-10 h-10 rounded-full bg-[var(--color-surface)] border border-[var(--color-divider)] shadow-soft text-[var(--color-secondary)] flex items-center justify-center active:scale-95 hover:bg-[var(--color-surface-soft)] transition-all duration-200"
-                aria-label="최상단으로 이동"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="18 15 12 9 6 15"></polyline>
-                </svg>
-              </button>
-            </div>
           </div>
       </main>
+
+      {/* 플로팅 최상단 이동 버튼 (AllPricesPage와 동일하게 PageLayout의 직계 자식으로 형제 레벨에 배치) */}
+      <div 
+        className="absolute right-5 z-[99]"
+        style={{ bottom: '112px' }}
+      >
+        <button
+          onClick={scrollToTop}
+          className="w-10 h-10 rounded-full bg-[var(--color-surface)] border border-[var(--color-divider)] shadow-soft text-[var(--color-secondary)] flex items-center justify-center active:scale-95 hover:bg-[var(--color-surface-soft)] transition-all duration-200"
+          aria-label="최상단으로 이동"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="18 15 12 9 6 15"></polyline>
+          </svg>
+        </button>
+      </div>
 
       <Footer activeTab="favorite" />
 
