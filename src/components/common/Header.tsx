@@ -41,7 +41,7 @@ export function Header({ title = '고기시세', rightAction = null, onActionCli
             공유
           </button>
         )}
-        
+
         {/* 인증 상태 표시 (클린 아키텍처 원칙 준수) */}
         {!isAuthenticated ? null : (
           <div className="flex items-center gap-1">

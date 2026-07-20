@@ -8,7 +8,10 @@ export function Footer({ activeTab = 'favorite' }: FooterProps) {
   const navigate = useNavigate();
 
   return (
-    <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-[var(--color-surface)] h-[80px] z-[60] shadow-footer flex items-center justify-around px-2 pb-safe">
+    <footer 
+      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-[var(--color-surface)] h-[80px] z-[60] shadow-footer flex items-center justify-around px-2 pb-safe"
+      style={{ clipPath: 'inset(0 16px 0 0)' }}
+    >
       <button 
         onClick={() => navigate('/favorites')}
         className={`flex flex-col items-center justify-center gap-1 w-full h-full active:scale-[0.98] transition-transform duration-200 ${activeTab === 'favorite' ? 'text-[var(--color-primary)]' : 'text-[var(--text-muted)]'}`}
