@@ -142,7 +142,7 @@ export function AllPricesPage() {
       <Header title="전체 시세" />
 
       {/* 📌 스크롤바가 우측 가장자리 끝에 딱 붙되, 고정 헤더 아래(72px)부터 시작하고 푸터 위에서 끝나도록 내부 스크롤 영역 지정 */}
-      <div className="w-full flex-1 flex flex-col overflow-y-auto [scrollbar-gutter:stable] px-5 -mx-5 min-h-0">
+      <div className="flex-1 flex flex-col overflow-y-auto [scrollbar-gutter:stable] px-5 -mx-5 min-h-0">
         <div className="w-full flex-shrink-0 flex flex-col pt-[var(--spacing-16)] pb-[var(--spacing-8)] gap-[var(--spacing-12)]">
           <div className="flex-shrink-0 w-full">
             <AnimalSelect selectedType={animalType} onSelect={handleAnimalChange} hideHeader />
