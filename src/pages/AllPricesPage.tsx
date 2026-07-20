@@ -268,8 +268,11 @@ export function AllPricesPage() {
         </main>
       </div>
 
-      {/* 플로팅 최상단 이동 버튼 (푸터 위에 겹치지 않게 bottom-32 및 z-[99]로 확실하게 띄움) */}
-      <div className="absolute bottom-32 right-5 z-[99]">
+      {/* 플로팅 최상단 이동 버튼 (푸터 탭바와 절대 겹치지 않도록 Y축 높이를 140px 위로 확실히 격상) */}
+      <div 
+        className="absolute right-5 z-[99]"
+        style={{ bottom: '140px' }}
+      >
         <button
           onClick={scrollToTop}
           className="w-10 h-10 rounded-full bg-[var(--color-surface)] border border-[var(--color-divider)] shadow-soft text-[var(--color-secondary)] flex items-center justify-center active:scale-95 hover:bg-[var(--color-surface-soft)] transition-all duration-200"
