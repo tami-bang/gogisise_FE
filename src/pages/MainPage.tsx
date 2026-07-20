@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageLayout } from '../components/common/PageLayout';
 import { Header } from '../components/common/Header';
@@ -53,7 +53,7 @@ export function MainPage() {
   const [isToastVisible, setIsToastVisible] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [showTooltip, setShowTooltip] = useState(false);
-  const [pageChangeTrigger, setPageChangeTrigger] = useState(0);
+
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [lastFocusedElement, setLastFocusedElement] = useState<HTMLElement | null>(null);
@@ -92,17 +92,7 @@ export function MainPage() {
     }
   }, [page, totalCount, totalPages]);
 
-  useEffect(() => {
-    if (appStep === 'list' && listStatus === 'success') {
-      setPageChangeTrigger((trigger) => trigger + 1);
-    }
-  }, [appStep, animalType, listStatus, page, storageType]);
 
-  useLayoutEffect(() => {
-    if (pageChangeTrigger > 0 && listStatus === 'success') {
-      listTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [pageChangeTrigger, listStatus]);
 
   const handleAnimalSelect = (type: 'BEEF' | 'PORK') => {
     setAnimalType(type);
