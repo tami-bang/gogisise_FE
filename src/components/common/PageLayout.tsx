@@ -2,22 +2,19 @@ import React from 'react';
 
 interface PageLayoutProps {
   children: React.ReactNode;
-  disableScroll?: boolean;
 }
 
 /**
  * @description docs/design/pages/BASE.md 명세를 반영하여 
  * 애플리케이션 전체 페이지의 가로폭과 패딩을 한곳에서 통제하는 싱글 소스 컴포넌트
  */
-export const PageLayout = ({ children, disableScroll = false }: PageLayoutProps) => {
+export const PageLayout = ({ children }: PageLayoutProps) => {
   const isMockMode = typeof window !== 'undefined' && window.sessionStorage 
     ? window.sessionStorage.getItem('gogisise:is_mock_mode') === 'true' 
     : false;
 
   return (
-    <div className={`page-layout-container w-full max-w-md mx-auto h-[100dvh] bg-[var(--color-bg)] px-5 pt-[72px] pb-[96px] box-border flex flex-col relative overflow-x-hidden ${
-      disableScroll ? 'overflow-y-hidden' : 'overflow-y-scroll [scrollbar-gutter:stable]'
-    } shadow-2xl`}>
+    <div className="page-layout-container w-full max-w-md mx-auto h-[100dvh] bg-[var(--color-bg)] px-5 pt-[72px] pb-[96px] box-border flex flex-col relative overflow-x-hidden overflow-y-scroll [scrollbar-gutter:stable] shadow-2xl">
       {isMockMode && (
         <div className="w-full bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.25)] rounded-2xl py-3 pl-5 pr-4 mt-12 mb-4 flex items-center gap-3 shadow-sm transition-all duration-300 hover:border-[rgba(245,158,11,0.4)] shrink-0 animate-fade-in">
           <div className="flex-shrink-0 w-9 h-9 rounded-full bg-[rgba(245,158,11,0.15)] flex items-center justify-center animate-pulse">

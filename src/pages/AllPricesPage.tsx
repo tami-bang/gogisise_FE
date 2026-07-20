@@ -138,127 +138,124 @@ export function AllPricesPage() {
   const isFilterEmpty = !loading && categories.length > 0 && filteredCategories.length === 0;
 
   return (
-    <PageLayout disableScroll>
+    <PageLayout>
       <Header title="전체 시세" />
 
-      {/* 📌 스크롤바가 우측 가장자리 끝에 딱 밀착하되, 상하단 8px 테두리 안쪽에서 온전하게 다 보이도록 여백 보정 */}
-      <div className="page-layout-container w-full flex-1 flex flex-col overflow-y-auto [scrollbar-gutter:stable] px-5 -mx-5 min-h-0">
-        <div className="w-full flex-shrink-0 flex flex-col pt-[var(--spacing-16)] pb-[var(--spacing-8)] gap-[var(--spacing-12)]">
-          <div className="flex-shrink-0 w-full">
-            <AnimalSelect selectedType={animalType} onSelect={handleAnimalChange} hideHeader />
-          </div>
-
-          <SegmentedControl
-            options={[
-              { label: '냉장', value: 'CHILLED' },
-              { label: '냉동', value: 'FROZEN' },
-            ]}
-            selectedValue={storageType}
-            onChange={(val) => handleStorageChange(val as StorageType)}
-          />
-
-          <SearchInput
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder="부위명으로 검색 (예: 삼겹, 안심)"
-          />
-
-          {!loading && !error && (
-            <div className="flex items-center justify-between">
-              <span className="text-caption text-[var(--text-light)]">
-                {searchQuery.trim() ? `"${searchQuery.trim()}" 검색 결과` : '부위 선택'}
-              </span>
-              <span
-                className="text-caption font-bold px-2 py-0.5 rounded-full"
-                style={{
-                  backgroundColor: filteredCategories.length > 0
-                    ? 'rgba(59, 145, 200, 0.1)'
-                    : 'rgba(209, 71, 52, 0.1)',
-                  color: filteredCategories.length > 0
-                    ? 'var(--color-secondary)'
-                    : 'var(--color-text-red)',
-                }}
-              >
-                {filteredCategories.length}개 부위
-              </span>
-            </div>
-          )}
+      <div className="w-full flex-shrink-0 flex flex-col pt-[var(--spacing-16)] pb-[var(--spacing-8)] gap-[var(--spacing-12)]">
+        <div className="flex-shrink-0 w-full">
+          <AnimalSelect selectedType={animalType} onSelect={handleAnimalChange} hideHeader />
         </div>
 
-        <main className="w-full flex-1 flex flex-col pb-[var(--spacing-16)]">
-          <div ref={listTopRef} />
+        <SegmentedControl
+          options={[
+            { label: '냉장', value: 'CHILLED' },
+            { label: '냉동', value: 'FROZEN' },
+          ]}
+          selectedValue={storageType}
+          onChange={(val) => handleStorageChange(val as StorageType)}
+        />
 
-          <div className="flex justify-between items-end mb-[var(--spacing-16)]">
-            <h3 className="text-title font-bold">
-              {animalType === 'BEEF' ? '한우' : '한돈'} {storageType === 'CHILLED' ? '냉장' : '냉동'} 부위 목록
-            </h3>
-            <span className="text-caption text-[var(--text-light)]">1kg 기준 시세</span>
+        <SearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="부위명으로 검색 (예: 삼겹, 안심)"
+        />
+
+        {!loading && !error && (
+          <div className="flex items-center justify-between">
+            <span className="text-caption text-[var(--text-light)]">
+              {searchQuery.trim() ? `"${searchQuery.trim()}" 검색 결과` : '부위 선택'}
+            </span>
+            <span
+              className="text-caption font-bold px-2 py-0.5 rounded-full"
+              style={{
+                backgroundColor: filteredCategories.length > 0
+                  ? 'rgba(59, 145, 200, 0.1)'
+                  : 'rgba(209, 71, 52, 0.1)',
+                color: filteredCategories.length > 0
+                  ? 'var(--color-secondary)'
+                  : 'var(--color-text-red)',
+              }}
+            >
+              {filteredCategories.length}개 부위
+            </span>
           </div>
-
-          <div className="flex flex-col gap-[var(--spacing-12)]">
-            {loading && <ListSkeleton count={6} />}
-
-            {error && (
-              <div className="mt-8">
-                <InlineError
-                  message="카테고리 정보를 불러오지 못했습니다."
-                  onRetry={fetchCategoryTree}
-                />
-              </div>
-            )}
-
-            {isApiEmpty && (
-              <div className="mt-8">
-                <EmptyState
-                  title="카테고리 데이터가 없습니다."
-                  description="크롤러 구동 후 다시 시도해 주세요."
-                />
-              </div>
-            )}
-
-            {isFilterEmpty && (
-              <div className="mt-8">
-                <EmptyState
-                  title={searchQuery.trim() ? `"${searchQuery.trim()}"에 해당하는 부위가 없습니다.` : '해당 조건의 부위가 존재하지 않습니다.'}
-                  description={searchQuery.trim() ? '다른 부위를 입력해 보세요.' : '축종이나 보관 상태를 변경해 보세요.'}
-                />
-              </div>
-            )}
-
-            {!loading && filteredCategories.length > 0 && filteredCategories.map((node) => {
-              const hasData = node.hasApiData;
-              return (
-                <button
-                  key={node.ctgNo}
-                  disabled={!hasData}
-                  onClick={() => hasData && setSelectedItemId(`path:${node.path}`)}
-                  className={`w-full text-left bg-[var(--color-surface)] p-[var(--spacing-20)] rounded-[var(--radius-xl)] border border-[var(--color-divider)] shadow-soft transition-all duration-200 flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] ${
-                    hasData 
-                      ? 'active:scale-[0.98] active:bg-[rgba(59,145,200,0.05)] cursor-pointer' 
-                      : 'opacity-50 cursor-not-allowed'
-                  }`}
-                >
-                  <div className="flex flex-col gap-1">
-                    <span className="text-body-lg text-[var(--text-strong)] font-bold">{node.displayName}</span>
-                    <span className="text-caption text-[var(--text-light)]">
-                      {node.path ? node.path.split(' > ').slice(0, 2).join(' > ') : (animalType === 'BEEF' ? '국내산 한우 > 국내산 한우 암소' : '국내산 돈육')}
-                    </span>
-                  </div>
-                  {hasData ? (
-                    <div className="flex items-center gap-1 text-caption text-[var(--color-secondary)] font-bold">
-                      시세 보기 &rarr;
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1 text-caption text-[var(--text-light)] font-bold">
-                      0개 (준비중)
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </main>
+        )}
       </div>
+
+      <main className="w-full flex-1 flex flex-col pb-[var(--spacing-16)]">
+        <div ref={listTopRef} />
+
+        <div className="flex justify-between items-end mb-[var(--spacing-16)]">
+          <h3 className="text-title font-bold">
+            {animalType === 'BEEF' ? '한우' : '한돈'} {storageType === 'CHILLED' ? '냉장' : '냉동'} 부위 목록
+          </h3>
+          <span className="text-caption text-[var(--text-light)]">1kg 기준 시세</span>
+        </div>
+
+        <div className="flex flex-col gap-[var(--spacing-12)]">
+          {loading && <ListSkeleton count={6} />}
+
+          {error && (
+            <div className="mt-8">
+              <InlineError
+                message="카테고리 정보를 불러오지 못했습니다."
+                onRetry={fetchCategoryTree}
+              />
+            </div>
+          )}
+
+          {isApiEmpty && (
+            <div className="mt-8">
+              <EmptyState
+                title="카테고리 데이터가 없습니다."
+                description="크롤러 구동 후 다시 시도해 주세요."
+              />
+            </div>
+          )}
+
+          {isFilterEmpty && (
+            <div className="mt-8">
+              <EmptyState
+                title={searchQuery.trim() ? `"${searchQuery.trim()}"에 해당하는 부위가 없습니다.` : '해당 조건의 부위가 존재하지 않습니다.'}
+                description={searchQuery.trim() ? '다른 부위를 입력해 보세요.' : '축종이나 보관 상태를 변경해 보세요.'}
+              />
+            </div>
+          )}
+
+          {!loading && filteredCategories.length > 0 && filteredCategories.map((node) => {
+            const hasData = node.hasApiData;
+            return (
+              <button
+                key={node.ctgNo}
+                disabled={!hasData}
+                onClick={() => hasData && setSelectedItemId(`path:${node.path}`)}
+                className={`w-full text-left bg-[var(--color-surface)] p-[var(--spacing-20)] rounded-[var(--radius-xl)] border border-[var(--color-divider)] shadow-soft transition-all duration-200 flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] ${
+                  hasData 
+                    ? 'active:scale-[0.98] active:bg-[rgba(59,145,200,0.05)] cursor-pointer' 
+                    : 'opacity-50 cursor-not-allowed'
+                }`}
+              >
+                <div className="flex flex-col gap-1">
+                  <span className="text-body-lg text-[var(--text-strong)] font-bold">{node.displayName}</span>
+                  <span className="text-caption text-[var(--text-light)]">
+                    {node.path ? node.path.split(' > ').slice(0, 2).join(' > ') : (animalType === 'BEEF' ? '국내산 한우 > 국내산 한우 암소' : '국내산 돈육')}
+                  </span>
+                </div>
+                {hasData ? (
+                  <div className="flex items-center gap-1 text-caption text-[var(--color-secondary)] font-bold">
+                    시세 보기 &rarr;
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 text-caption text-[var(--text-light)] font-bold">
+                    0개 (준비중)
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </main>
 
       <PriceDetailSheet
         isOpen={selectedItemId !== null}
