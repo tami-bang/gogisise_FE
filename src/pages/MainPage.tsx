@@ -10,6 +10,7 @@ import { InlineError } from '../components/common/InlineError';
 import { Toast } from '../components/common/Toast';
 import { ListSkeleton } from '../components/common/ListSkeleton';
 import { AnimalSelect } from '../components/domain/AnimalSelect';
+import { SummaryStats } from '../components/domain/SummaryStats';
 import { FavoriteShareSheet } from '../components/domain/FavoriteShareSheet';
 import { PriceDetailSheet } from '../components/domain/price-detail/PriceDetailSheet';
 import { useFavoritePrices } from '../hooks/useFavoritePrices';
@@ -41,7 +42,7 @@ export function MainPage() {
   const [animalType, setAnimalType] = useState<'BEEF' | 'PORK' | null>(null);
   const [storageType, setStorageType] = useState<'CHILLED' | 'FROZEN'>('CHILLED');
 
-  const { status: summaryStatus, refetch: loadInitialData } = useMarketSummary();
+  const { status: summaryStatus, summary, refetch: loadInitialData } = useMarketSummary();
   const initialStatus: AsyncStatus = summaryStatus === 'empty'
     ? 'success'
     : summaryStatus === 'idle'
@@ -286,7 +287,7 @@ export function MainPage() {
         onBack={appStep === 'list' ? handleBack : undefined}
       />
 
-      <main ref={mainRef} className="w-full flex flex-col flex-1 pb-4">
+      <main ref={mainRef} className="w-full flex flex-col flex-1 min-h-0 pb-4">
         {summaryStatus === 'error' && (
           <div className="w-full pt-6 flex-shrink-0">
             <InlineError message="오늘의 시세 요약을 불러오지 못했어요" onRetry={loadInitialData} />
@@ -304,6 +305,16 @@ export function MainPage() {
             ref={scrollContainerRef}
             className="flex-1 flex flex-col overflow-y-auto [scrollbar-gutter:stable] px-5 -mx-5 min-h-0 relative pb-[var(--spacing-16)]"
           >
+            {summaryStatus === 'success' && summary && (
+              <div className="w-full flex-shrink-0 pt-[var(--spacing-16)]">
+                <SummaryStats
+                  summary={summary}
+                  onClickCard={handleAnimalSelect}
+                  activeAnimal={animalType}
+                />
+              </div>
+            )}
+
             <div className="w-full flex-shrink-0 flex flex-col pt-[var(--spacing-16)] pb-[var(--spacing-8)] gap-[var(--spacing-12)]">
               <SegmentedControl
                 options={[
