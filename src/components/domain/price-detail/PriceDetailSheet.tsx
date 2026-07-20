@@ -3,6 +3,8 @@ import { Line, LineChart, ResponsiveContainer, Tooltip } from 'recharts';
 // 💡 훅(Hook): 특정 기능을 재사용 가능하도록 묶어놓은 함수. 음식점 주방의 '레시피 카드'와 같습니다.
 import { usePriceDetail } from '../../../hooks/usePriceDetail';
 import type { TrendStatus } from '../../../api/types/market';
+import { useFavorites } from '../../../hooks/useFavorites';
+import { useFavoriteMutation } from '../../../hooks/useFavoriteMutation';
 
 interface PriceDetailSheetProps {
   isOpen: boolean;
@@ -194,6 +196,45 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
 
     return groups;
   }, [items]);
+
+  // 6.5. 즐겨찾기 상태 판단 및 추가/삭제 Mutation
+  const { isFavorite } = useFavorites();
+  const { addFavorite: mutateAdd, removeFavorite: mutateRemove } = useFavoriteMutation({
+    onSuccess: () => {
+      // 상세 시세에서 즐겨찾기 상태 변경 성공 시, 메인화면 목록 자동 갱신
+      _onFavoriteRemoved?.();
+    },
+  });
+
+  const targetFavoriteItemId = useMemo(() => {
+    if (!detail) return null;
+    // 한우이고, 현재 선택된 탭이 '전체'가 아니라 등급 탭인 경우
+    if (detail.animalType === 'BEEF' && activeTab !== ALL_ITEMS_TAB) {
+      const currentGradeItems = groupedItems[activeTab] || [];
+      return currentGradeItems[0]?.goodsNo || detail.itemId;
+    }
+    // 한돈이거나, 한우 '전체' 탭인 경우
+    return detail.itemId;
+  }, [detail, activeTab, groupedItems]);
+
+  const isCurrentFavorite = useMemo(() => {
+    if (!targetFavoriteItemId) return false;
+    return isFavorite(targetFavoriteItemId);
+  }, [targetFavoriteItemId, isFavorite]);
+
+  const handleFavoriteToggle = async () => {
+    if (!targetFavoriteItemId || !detail) return;
+
+    if (isCurrentFavorite) {
+      await mutateRemove(targetFavoriteItemId);
+    } else {
+      await mutateAdd({
+        itemId: targetFavoriteItemId,
+        animalType: detail.animalType,
+        storageType: detail.storageType,
+      });
+    }
+  };
 
   const hasGradedItems = useMemo(
     () => GRADE_TABS.some((grade) => groupedItems[grade].length > 0),
@@ -402,24 +443,43 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
         {/* ④ 성공: 등급별 탭 필터 + 통계 카드 + 상품 카드 리스트 */}
         {status === 'success' && items.length > 0 && (
           <>
-            {/* 상단 등급 탭 버튼 */}
-            <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
-              {visibleTabs.map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 rounded-full whitespace-nowrap font-bold transition-colors ${
-                    activeTab === tab
-                      ? 'bg-[var(--color-primary)] text-white'
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                  }`}
-                >
-                  {tab}{' '}
-                  <span className="text-sm font-normal opacity-80">
-                    ({tab === ALL_ITEMS_TAB ? items.length : groupedItems[tab]?.length}건)
-                  </span>
-                </button>
-              ))}
+            {/* 상단 등급 탭 버튼 및 우측 끝 즐겨찾기 버튼 정렬 컨테이너 */}
+            <div className="flex justify-between items-center gap-4 mb-4 pb-2">
+              <div className="flex-1 flex gap-2 overflow-x-auto scrollbar-hide pr-1">
+                {visibleTabs.map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-4 py-2 rounded-full whitespace-nowrap font-bold transition-colors ${
+                      activeTab === tab
+                        ? 'bg-[var(--color-primary)] text-white'
+                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                    }`}
+                  >
+                    {tab}{' '}
+                    <span className="text-sm font-normal opacity-80">
+                      ({tab === ALL_ITEMS_TAB ? items.length : groupedItems[tab]?.length}건)
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {/* 우측 끝 즐겨찾기 버튼 (파란색 테마) */}
+              <button
+                type="button"
+                onClick={handleFavoriteToggle}
+                className={`flex-shrink-0 flex items-center justify-center gap-1 px-3 py-1.5 rounded-full font-bold text-caption transition-all duration-200 active:scale-[0.96] border ${
+                  isCurrentFavorite
+                    ? 'bg-[var(--color-secondary)] border-[var(--color-secondary)] text-white'
+                    : 'bg-white border-[var(--color-secondary)] text-[var(--color-secondary)] hover:bg-[rgba(59,145,200,0.05)]'
+                }`}
+                aria-label={isCurrentFavorite ? '즐겨찾기 삭제' : '즐겨찾기 추가'}
+              >
+                <span className="text-sm" aria-hidden="true">
+                  {isCurrentFavorite ? '★' : '☆'}
+                </span>
+                <span>즐겨찾기</span>
+              </button>
             </div>
 
             <div className="mb-[var(--spacing-16)]">
