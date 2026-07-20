@@ -9,7 +9,6 @@ import { ErrorState } from '../components/common/ErrorState';
 import { InlineError } from '../components/common/InlineError';
 import { Toast } from '../components/common/Toast';
 import { ListSkeleton } from '../components/common/ListSkeleton';
-import { AnimalSelect } from '../components/domain/AnimalSelect';
 import { SummaryStats } from '../components/domain/SummaryStats';
 import { FavoriteShareSheet } from '../components/domain/FavoriteShareSheet';
 import { PriceDetailSheet } from '../components/domain/price-detail/PriceDetailSheet';
@@ -291,12 +290,7 @@ export function MainPage() {
                 />
               </div>
             )}
-
             <div className="w-full flex-shrink-0 flex flex-col pt-[var(--spacing-16)] pb-[var(--spacing-8)] gap-[var(--spacing-12)]">
-              <div className="flex-shrink-0 w-full">
-                <AnimalSelect selectedType={animalType} onSelect={setAnimalType} hideHeader />
-              </div>
-
               <SegmentedControl
                 options={[
                   { label: '냉장', value: 'CHILLED' },
