@@ -628,8 +628,8 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
         )}
         </div>
 
-        {/* 모달 전용 플로팅 최상단 이동 버튼 (스크롤바 영역과 겹치지 않게 right-8로 미세 조정) */}
-        <div className="absolute bottom-6 right-8 z-20">
+        {/* 모달 전용 플로팅 최상단 이동 버튼 (스크롤바 영역과 겹치지 않게 right-8 및 z-30 지정) */}
+        <div className="absolute bottom-6 right-8 z-30">
           <button
             onClick={scrollToTop}
             className="w-10 h-10 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] shadow-medium text-[var(--color-secondary)] flex items-center justify-center active:scale-95 hover:bg-[var(--color-surface-soft)] transition-all duration-200"
