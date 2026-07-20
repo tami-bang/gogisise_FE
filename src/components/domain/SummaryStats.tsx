@@ -32,7 +32,7 @@ export function SummaryStats({ summary, onClickCard, activeAnimal = null }: Prop
         >
           <div className="flex flex-col items-center gap-6 mb-8 w-full">
             <div className="flex items-center justify-center h-12 w-full" aria-hidden="true">
-              <span className="text-[40px] leading-none">🐄</span>
+              <span className="text-[40px] leading-none">🐂</span>
             </div>
             <h3 className="text-body-lg font-bold w-full text-center">한우</h3>
           </div>

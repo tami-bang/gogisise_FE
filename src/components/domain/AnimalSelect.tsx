@@ -24,7 +24,7 @@ export function AnimalSelect({ onSelect, selectedType, hideHeader }: Props) {
           aria-label="한우 선택"
         >
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%]" aria-hidden="true">
-            <span className="text-6xl leading-none">🐄</span>
+            <span className="text-6xl leading-none">🐂</span>
           </div>
           <span className="absolute bottom-8 left-1/2 -translate-x-1/2 text-title font-bold whitespace-nowrap">
             한우
