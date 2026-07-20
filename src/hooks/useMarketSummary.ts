@@ -30,10 +30,28 @@ const toAsyncError = (error: unknown): AsyncError => {
   };
 };
 
+const CACHE_KEY = 'gogisise:cache:market_summary';
+
 export function useMarketSummary(params: UseMarketSummaryParams = {}) {
   const { enabled = true, accessToken = null } = params;
-  const [status, setStatus] = useState<AsyncStatus>('idle');
-  const [summary, setSummary] = useState<MarketSummary | null>(null);
+  
+  const [summary, setSummary] = useState<MarketSummary | null>(() => {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [status, setStatus] = useState<AsyncStatus>(() => {
+    try {
+      return localStorage.getItem(CACHE_KEY) ? 'success' : 'idle';
+    } catch {
+      return 'idle';
+    }
+  });
+
   const [error, setError] = useState<AsyncError | null>(null);
 
   const refetch = useCallback(async () => {
@@ -44,7 +62,7 @@ export function useMarketSummary(params: UseMarketSummaryParams = {}) {
     }
 
     const controller = new AbortController();
-    setStatus('loading');
+    setStatus((prev) => (prev === 'success' ? 'success' : 'loading'));
     setError(null);
 
     try {
@@ -55,9 +73,13 @@ export function useMarketSummary(params: UseMarketSummaryParams = {}) {
       if (controller.signal.aborted) return;
       setSummary(result);
       setStatus('success');
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(result));
+      } catch (e) {
+        console.warn('Failed to cache market summary', e);
+      }
     } catch (err) {
       if (controller.signal.aborted) return;
-      setSummary(null);
       setError(toAsyncError(err));
       setStatus('error');
     }
@@ -71,7 +93,7 @@ export function useMarketSummary(params: UseMarketSummaryParams = {}) {
     }
 
     const controller = new AbortController();
-    setStatus('loading');
+    setStatus((prev) => (prev === 'success' ? 'success' : 'loading'));
     setError(null);
 
     marketService
@@ -80,11 +102,15 @@ export function useMarketSummary(params: UseMarketSummaryParams = {}) {
         if (!controller.signal.aborted) {
           setSummary(result);
           setStatus('success');
+          try {
+            localStorage.setItem(CACHE_KEY, JSON.stringify(result));
+          } catch (e) {
+            console.warn('Failed to cache market summary', e);
+          }
         }
       })
       .catch((err) => {
         if (controller.signal.aborted) return;
-        setSummary(null);
         setError(toAsyncError(err));
         setStatus('error');
       });

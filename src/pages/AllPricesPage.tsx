@@ -44,9 +44,26 @@ export function AllPricesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
-  // 카테고리 트리 상태
-  const [categories, setCategories] = useState<CategoryNode[]>([]);
-  const [loading, setLoading] = useState(true);
+  // 카테고리 트리 상태 (SWR 캐싱 적용)
+  const CATEGORY_CACHE_KEY = 'gogisise:cache:category_tree';
+  
+  const [categories, setCategories] = useState<CategoryNode[]>(() => {
+    try {
+      const cached = localStorage.getItem(CATEGORY_CACHE_KEY);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [loading, setLoading] = useState(() => {
+    try {
+      return !localStorage.getItem(CATEGORY_CACHE_KEY);
+    } catch {
+      return true;
+    }
+  });
+
   const [error, setError] = useState<boolean>(false);
 
   const listTopRef = useRef<HTMLDivElement>(null);
@@ -58,11 +75,22 @@ export function AllPricesPage() {
 
   // 카테고리 로드
   const fetchCategoryTree = async () => {
-    setLoading(true);
+    setLoading(() => {
+      try {
+        return !localStorage.getItem(CATEGORY_CACHE_KEY);
+      } catch {
+        return true;
+      }
+    });
     setError(false);
     try {
       const data = await marketService.getCategoryTree({ depth: 4 });
       setCategories(data);
+      try {
+        localStorage.setItem(CATEGORY_CACHE_KEY, JSON.stringify(data));
+      } catch (e) {
+        console.warn('Failed to cache category tree', e);
+      }
     } catch (e) {
       console.error('Failed to fetch category tree:', e);
       setError(true);
