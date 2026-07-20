@@ -5,6 +5,7 @@ import { usePriceDetail } from '../../../hooks/usePriceDetail';
 import type { TrendStatus } from '../../../api/types/market';
 import { useFavorites } from '../../../hooks/useFavorites';
 import { useFavoriteMutation } from '../../../hooks/useFavoriteMutation';
+import { Toast } from '../../common/Toast';
 
 interface PriceDetailSheetProps {
   isOpen: boolean;
@@ -133,6 +134,13 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
   const [activeTab, setActiveTab] = useState<string>(GRADE_TABS[0]);
   const [sortOption, setSortOption] = useState<SortOption>('PRICE_PER_KG_ASC');
   const [selectedChartDate, setSelectedChartDate] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState('');
+  const [isToastVisible, setIsToastVisible] = useState(false);
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setIsToastVisible(true);
+  };
   const sheetRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -225,14 +233,24 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
   const handleFavoriteToggle = async () => {
     if (!targetFavoriteItemId || !detail) return;
 
+    const nameForToast = detail.animalType === 'BEEF' && activeTab !== ALL_ITEMS_TAB
+      ? `${detail.displayName} (${activeTab})`
+      : detail.displayName;
+
     if (isCurrentFavorite) {
-      await mutateRemove(targetFavoriteItemId);
+      const success = await mutateRemove(targetFavoriteItemId);
+      if (success) {
+        showToast(`${nameForToast}을(를) 즐겨찾기에서 해제했어요`);
+      }
     } else {
-      await mutateAdd({
+      const success = await mutateAdd({
         itemId: targetFavoriteItemId,
         animalType: detail.animalType,
         storageType: detail.storageType,
       });
+      if (success) {
+        showToast(`${nameForToast}을(를) 즐겨찾기에 등록했어요`);
+      }
     }
   };
 
@@ -701,6 +719,13 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
           </button>
         </div>
       </div>
+
+      {/* 즐겨찾기 등록/해제 토스트 알림 */}
+      <Toast
+        message={toastMessage}
+        isVisible={isToastVisible}
+        onClose={() => setIsToastVisible(false)}
+      />
     </div>
   );
 }
