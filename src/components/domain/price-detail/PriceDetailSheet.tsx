@@ -300,17 +300,17 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
         aria-hidden="true"
       />
 
-      {/* 바텀 시트 컨테이너 */}
+      {/* 바텀 시트 컨테이너 (스크롤 제한, 내부 Flexbox 구성) */}
       <div
         ref={sheetRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="price-detail-title"
-        className="relative z-10 w-full max-w-md max-h-[calc(100dvh-96px)] overflow-y-auto bg-[var(--color-surface)] rounded-t-[var(--radius-2xl)] sm:rounded-[var(--radius-2xl)] p-[var(--spacing-20)] shadow-medium transition-transform duration-200"
+        className="relative z-10 w-full max-w-md max-h-[calc(100dvh-96px)] flex flex-col bg-[var(--color-surface)] rounded-t-[var(--radius-2xl)] sm:rounded-[var(--radius-2xl)] shadow-medium transition-transform duration-200 overflow-hidden"
       >
-        {/* 상단 헤더 및 닫기 버튼 */}
-        <div className="flex justify-between items-center mb-[var(--spacing-16)]">
-          <h2 id="price-detail-title" className="text-title text-[var(--text-strong)]">상세 시세 및 구매</h2>
+        {/* 상단 헤더 및 닫기 버튼 (p-[var(--spacing-20)] 패딩 및 하단 구분선 지정) */}
+        <div className="flex justify-between items-center px-[var(--spacing-20)] pt-[var(--spacing-20)] pb-[var(--spacing-12)] border-b border-[var(--color-divider)] flex-shrink-0">
+          <h2 id="price-detail-title" className="text-title font-bold text-[var(--text-strong)]">상세 시세 및 구매</h2>
           <button
             type="button"
             onClick={onClose}
@@ -320,6 +320,9 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
             ✕
           </button>
         </div>
+
+        {/* 📌 내부 컨텐츠 스크롤 영역 (스크롤바가 모서리 라운드를 침범하지 않도록 px-[var(--spacing-20)] 지정) */}
+        <div className="flex-1 overflow-y-auto px-[var(--spacing-20)] pt-[var(--spacing-16)] pb-[var(--spacing-32)] min-h-0 [scrollbar-gutter:stable]">
 
         {/* 💡 상태(Status)에 따른 조건 분기 렌더링 */}
 
@@ -615,6 +618,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
             </div>
           </>
         )}
+        </div>
       </div>
     </div>
   );
