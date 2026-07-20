@@ -127,7 +127,6 @@ export function AllPricesPage() {
   const handleAnimalChange = (type: AnimalType) => {
     setAnimalType(type);
     setSearchQuery('');
-    listTopRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleStorageChange = (type: StorageType) => {

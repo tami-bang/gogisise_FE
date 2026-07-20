@@ -14,7 +14,7 @@ export const PageLayout = ({ children }: PageLayoutProps) => {
     : false;
 
   return (
-    <div className="w-full max-w-md mx-auto h-screen bg-[var(--color-bg)] px-5 pt-[72px] pb-[96px] box-border flex flex-col relative overflow-x-hidden overflow-y-scroll [scrollbar-gutter:stable] shadow-2xl">
+    <div className="page-layout-container w-full max-w-md mx-auto h-[100dvh] bg-[var(--color-bg)] px-5 pt-[72px] pb-[96px] box-border flex flex-col relative overflow-x-hidden overflow-y-scroll [scrollbar-gutter:stable] shadow-2xl">
       {isMockMode && (
         <div className="w-full bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.25)] rounded-2xl py-3 pl-5 pr-4 mt-12 mb-4 flex items-center gap-3 shadow-sm transition-all duration-300 hover:border-[rgba(245,158,11,0.4)] shrink-0 animate-fade-in">
           <div className="flex-shrink-0 w-9 h-9 rounded-full bg-[rgba(245,158,11,0.15)] flex items-center justify-center animate-pulse">

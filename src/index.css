@@ -152,4 +152,25 @@
     scrollbar-width: thin;
     scrollbar-color: rgba(59, 145, 200, 0.4) transparent;
   }
+
+  /* PageLayout 전용 얇은 커스텀 스크롤바 적용 (최상단/최하단 8px 안쪽 경계 제한으로 잘림 방지) */
+  .page-layout-container::-webkit-scrollbar {
+    width: 5px;
+  }
+  .page-layout-container::-webkit-scrollbar-track {
+    background: transparent;
+    margin-top: 8px;
+    margin-bottom: 8px;
+  }
+  .page-layout-container::-webkit-scrollbar-thumb {
+    background-color: rgba(59, 145, 200, 0.45);
+    border-radius: 999px;
+  }
+  .page-layout-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(59, 145, 200, 0.65);
+  }
+  .page-layout-container {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(59, 145, 200, 0.45) transparent;
+  }
 }
