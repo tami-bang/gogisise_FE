@@ -38,8 +38,7 @@ const CATEGORY_MASTER = {
 
 export function MainPage() {
   const navigate = useNavigate();
-  const [appStep, setAppStep] = useState<'select' | 'list'>('select');
-  const [animalType, setAnimalType] = useState<'BEEF' | 'PORK' | null>(null);
+  const [animalType, setAnimalType] = useState<'BEEF' | 'PORK'>('BEEF');
   const [storageType, setStorageType] = useState<'CHILLED' | 'FROZEN'>('CHILLED');
 
   const { status: summaryStatus, summary, refetch: loadInitialData } = useMarketSummary();
@@ -186,7 +185,7 @@ export function MainPage() {
       setIsOffline(false);
       showToast('인터넷이 다시 연결되었어요');
       if (initialStatus === 'error') loadInitialData();
-      if (appStep === 'list') refetchFavorites();
+      refetchFavorites();
     };
     const handleOffline = () => {
       setIsOffline(true);
@@ -198,13 +197,7 @@ export function MainPage() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [appStep, initialStatus, loadInitialData, refetchFavorites, showToast]);
-
-  const handleAnimalSelect = (type: 'BEEF' | 'PORK') => {
-    setAnimalType(type);
-    setAppStep('list');
-    setStorageType('CHILLED');
-  };
+  }, [initialStatus, loadInitialData, refetchFavorites, showToast]);
 
   const handleStorageChange = (type: 'CHILLED' | 'FROZEN') => {
     if (storageType === type) return;
@@ -249,12 +242,6 @@ export function MainPage() {
     }
   };
 
-  const handleBack = () => {
-    setAppStep('select');
-    setAnimalType(null);
-    setStorageType('CHILLED');
-  };
-
   const handleNavigateToAll = () => {
     navigate(`/all-prices?animalType=${animalType || 'BEEF'}&storageType=${storageType}`);
   };
@@ -273,18 +260,15 @@ export function MainPage() {
     );
   }
 
-  const headerTitle = appStep === 'select'
-    ? '고기시세'
-    : `${animalType === 'BEEF' ? '한우' : '한돈'} 즐겨찾기`;
-  const rightAction = appStep === 'select' ? null : 'share';
+  const headerTitle = '즐겨찾기 시세';
+  const rightAction = 'share';
 
   return (
-    <PageLayout disableScroll={appStep === 'list'}>
+    <PageLayout disableScroll>
       <Header
         title={headerTitle}
         rightAction={rightAction}
-        onActionClick={rightAction === 'share' ? handleOpenShare : undefined}
-        onBack={appStep === 'list' ? handleBack : undefined}
+        onActionClick={handleOpenShare}
       />
 
       <main ref={mainRef} className="w-full flex flex-col flex-1 min-h-0 pb-4">
@@ -294,13 +278,6 @@ export function MainPage() {
           </div>
         )}
 
-        {appStep === 'select' && (
-          <div className="w-full flex-1">
-            <AnimalSelect onSelect={handleAnimalSelect} />
-          </div>
-        )}
-
-        {appStep === 'list' && (
           <div 
             ref={scrollContainerRef}
             className="flex-1 flex flex-col overflow-y-auto [scrollbar-gutter:stable] px-5 -mx-5 min-h-0 relative pb-[var(--spacing-16)]"
@@ -309,13 +286,17 @@ export function MainPage() {
               <div className="w-full flex-shrink-0 pt-[var(--spacing-16)]">
                 <SummaryStats
                   summary={summary}
-                  onClickCard={handleAnimalSelect}
+                  onClickCard={setAnimalType}
                   activeAnimal={animalType}
                 />
               </div>
             )}
 
             <div className="w-full flex-shrink-0 flex flex-col pt-[var(--spacing-16)] pb-[var(--spacing-8)] gap-[var(--spacing-12)]">
+              <div className="flex-shrink-0 w-full">
+                <AnimalSelect selectedType={animalType} onSelect={setAnimalType} hideHeader />
+              </div>
+
               <SegmentedControl
                 options={[
                   { label: '냉장', value: 'CHILLED' },
@@ -439,7 +420,6 @@ export function MainPage() {
               </button>
             </div>
           </div>
-        )}
       </main>
 
       <Footer activeTab="favorite" />
