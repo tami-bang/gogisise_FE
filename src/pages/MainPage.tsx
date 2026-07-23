@@ -219,6 +219,19 @@ export function MainPage() {
       });
   }, [categories, animalType, storageType, targetMasterList, searchQuery, favoritedCategoriesSet]);
 
+  // 💡 [한글 주석] 사용자가 클릭하기 전 미리 5개 주요 부위의 데이터를 400ms 단위의 순차적(Sequential)인 시간차를 두고 선제적으로 로드하여
+  // 서버 부하를 최소화하면서도 0초 진입 체감 속도를 확보합니다.
+  useEffect(() => {
+    if (!loadingCategories && listStatus === 'success' && filteredCategories.length > 0) {
+      const activeTargets = filteredCategories.filter((c) => c.hasApiData).slice(0, 5);
+      activeTargets.forEach((node, index) => {
+        setTimeout(() => {
+          prefetchPriceDetail(`path:${node.path}`);
+        }, index * 400);
+      });
+    }
+  }, [loadingCategories, listStatus, filteredCategories]);
+
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
     setIsToastVisible(true);
