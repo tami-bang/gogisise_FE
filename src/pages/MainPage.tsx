@@ -464,7 +464,7 @@ export function MainPage() {
 
       {/* 플로팅 최상단 이동 버튼 (AllPricesPage와 동일하게 PageLayout의 직계 자식으로 형제 레벨에 배치) */}
       <div 
-        className="absolute right-5 z-[99]"
+        className="absolute right-5 z-[30]"
         style={{ bottom: '112px' }}
       >
         <button

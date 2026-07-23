@@ -337,7 +337,7 @@ export function AllPricesPage() {
 
       {/* 플로팅 최상단 이동 버튼 (푸터와 겹치지 않으면서 너무 붕 뜨지 않도록 최적의 중간 높이 112px 지정) */}
       <div 
-        className="absolute right-5 z-[99]"
+        className="absolute right-5 z-[30]"
         style={{ bottom: '112px' }}
       >
         <button
