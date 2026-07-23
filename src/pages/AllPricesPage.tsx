@@ -45,8 +45,11 @@ export function AllPricesPage() {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
   // 카테고리 트리 상태 (SWR 캐싱 적용)
+  // 💡 [한글 주석] 카테고리 트리 데이터 캐시 수명 30분 적용을 위한 키 및 시간 설정
   const CATEGORY_CACHE_KEY = 'gogisise:cache:category_tree';
-  
+  const CATEGORY_CACHE_TIME_KEY = 'gogisise:cache:category_tree_time';
+  const CATEGORY_CACHE_TTL = 30 * 60 * 1000; // 30분
+
   const [categories, setCategories] = useState<CategoryNode[]>(() => {
     try {
       const cached = localStorage.getItem(CATEGORY_CACHE_KEY);
@@ -74,7 +77,24 @@ export function AllPricesPage() {
   };
 
   // 카테고리 로드
-  const fetchCategoryTree = async () => {
+  // 💡 [한글 주석] force 매개변수가 false이고 캐시가 아직 유효(30분 이내)하다면 API 호출을 건너뜁니다.
+  const fetchCategoryTree = async (force = false) => {
+    try {
+      const cached = localStorage.getItem(CATEGORY_CACHE_KEY);
+      const cachedTime = localStorage.getItem(CATEGORY_CACHE_TIME_KEY);
+      
+      if (!force && cached && cachedTime) {
+        const age = Date.now() - Number(cachedTime);
+        if (age < CATEGORY_CACHE_TTL) {
+          // 캐시가 아직 30분 지나지 않았으므로 로드 생략
+          setLoading(false);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to check category cache age', e);
+    }
+
     setLoading(() => {
       try {
         return !localStorage.getItem(CATEGORY_CACHE_KEY);
@@ -88,6 +108,7 @@ export function AllPricesPage() {
       setCategories(data);
       try {
         localStorage.setItem(CATEGORY_CACHE_KEY, JSON.stringify(data));
+        localStorage.setItem(CATEGORY_CACHE_TIME_KEY, Date.now().toString());
       } catch (e) {
         console.warn('Failed to cache category tree', e);
       }
@@ -100,7 +121,7 @@ export function AllPricesPage() {
   };
 
   useEffect(() => {
-    fetchCategoryTree();
+    fetchCategoryTree(false); // 마운트 시에는 캐시된 데이터를 우선 활용하도록 force=false
   }, []);
 
   // 📌 한국어 주석: 현재 선택된 축종/보관상태 탭에 따른 마스터 부위 배열을 확보합니다.

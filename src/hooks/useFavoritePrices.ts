@@ -24,6 +24,9 @@ interface UseFavoritePricesParams {
 }
 
 let serverFavoriteCache: PriceItem[] | null = null;
+// 💡 [한글 주석] 즐겨찾기 메모리 캐시 시각 기록 변수 및 30초 단기 캐시 수명 설정
+let serverFavoriteCacheTime = 0;
+const SERVER_FAVORITE_TTL = 30 * 1000; // 30초
 
 const toAsyncError = (error: unknown): AsyncError => {
   if (error instanceof ApiClientError) {
@@ -58,10 +61,16 @@ export function useFavoritePrices({
   const [serverStatus, setServerStatus] = useState<AsyncStatus>(serverFavoriteCache ? 'success' : 'idle');
   const [error, setError] = useState<AsyncError | null>(null);
 
-  const refetch = useCallback(async () => {
+  // 💡 [한글 주석] force가 false이고 메모리 캐시 유효 기간(30초) 이내면 API 호출을 건너뛰고 기존 캐시 사용
+  const refetch = useCallback(async (force = false) => {
     if (!isAuthenticated) {
       setServerStatus('idle');
       setError(null);
+      return;
+    }
+
+    if (!force && serverFavoriteCache && (Date.now() - serverFavoriteCacheTime < SERVER_FAVORITE_TTL)) {
+      setServerStatus('success');
       return;
     }
 
@@ -76,6 +85,7 @@ export function useFavoritePrices({
       });
       if (controller.signal.aborted) return;
       serverFavoriteCache = result;
+      serverFavoriteCacheTime = Date.now(); // 캐시 시각 기록
       setServerFavorites(result);
       setServerStatus(result.length > 0 ? 'success' : 'empty');
     } catch (err) {
@@ -89,6 +99,7 @@ export function useFavoritePrices({
     }
   }, [accessToken, isAuthenticated, openAuthSheet]);
 
+  // 💡 [한글 주석] 마운트 시에는 캐시된 데이터를 우선 활용하도록 force=false로 호출
   useEffect(() => {
     if (!isAuthenticated) {
       setServerStatus('idle');
@@ -96,12 +107,15 @@ export function useFavoritePrices({
       return;
     }
 
-    refetch();
+    refetch(false);
   }, [isAuthenticated, refetch]);
 
+  // 💡 [한글 주석] 즐겨찾기 변경 이벤트 발생 시 캐시 메모리를 무효화하고 force=true로 강제 새로고침
   useEffect(() => {
     const handleChange = () => {
-      refetch();
+      serverFavoriteCache = null;
+      serverFavoriteCacheTime = 0; // 캐시 무효화
+      refetch(true); // 강제 갱신
     };
     window.addEventListener(SERVER_FAVORITES_CHANGE_EVENT, handleChange);
     return () => {
