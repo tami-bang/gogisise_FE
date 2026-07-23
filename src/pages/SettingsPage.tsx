@@ -3,7 +3,7 @@ import { PageLayout } from '../components/common/PageLayout';
 import { Header } from '../components/common/Header';
 import { Footer } from '../components/common/Footer';
 import { FontSizeSelector } from '../components/common/FontSizeSelector';
-import { FavoriteManager } from '../components/domain/FavoriteManager';
+import { EmptyState } from '../components/common/EmptyState'; // 💡 [한글 주석] 비로그인용 로그인 유도 안내창 임포트
 import { useAuthContext } from '../contexts/AuthContext';
 import { useAuth } from '../hooks/useAuth';
 import { userService } from '../api/services/userService'; // 💡 [한글 주석] 신규 회원수정/비번변경/탈퇴 API 연동
@@ -12,7 +12,7 @@ import { validateEmail, validatePassword, validateNickname, validatePhone } from
 
 export function SettingsPage() {
   const { user, accessToken, setAuth, clearAuth } = useAuthContext();
-  const { logout } = useAuth();
+  const { logout, openAuthSheet } = useAuth(); // 💡 [한글 주석] 로그아웃 및 로그인 시트 노출 함수 획득
 
   // 프로필 정보 수정 필드 상태
   const [nickname, setNickname] = useState('');
@@ -266,8 +266,13 @@ export function SettingsPage() {
           </div>
         ) : (
           // 비로그인용 설정 상단 빈 유도 영역 (안내문구 및 3초 로그인)
-          <div className="w-full">
-            <FavoriteManager />
+          <div className="w-full bg-white rounded-2xl p-5 border border-[var(--color-border)] shadow-sm">
+            <EmptyState 
+              title="로그인이 필요한 서비스입니다." 
+              description="즐겨찾기 및 계정 관리를 이용하시려면 로그인을 진행해 주세요." 
+              actionLabel="3초만에 로그인하기"
+              onAction={openAuthSheet}
+            />
           </div>
         )}
 
@@ -275,13 +280,6 @@ export function SettingsPage() {
         <div className="w-full bg-white rounded-2xl p-5 border border-[var(--color-border)] shadow-sm">
           <FontSizeSelector />
         </div>
-
-        {/* 로그인 상태인 경우, 하단에 즐겨찾기 목록 배치 */}
-        {user && (
-          <div className="w-full">
-            <FavoriteManager />
-          </div>
-        )}
       </div>
 
       <Footer activeTab="settings" />
