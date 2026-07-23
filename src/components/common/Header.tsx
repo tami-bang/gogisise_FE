@@ -1,4 +1,5 @@
 import { useAuth } from '../../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   title?: string;
@@ -9,7 +10,17 @@ interface HeaderProps {
 
 // 화면 최상단에 고정되는 헤더 컴포넌트입니다.
 export function Header({ title = '고기시세', rightAction = null, onActionClick, onBack }: HeaderProps) {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const handleProfileClick = () => {
+    navigate('/settings');
+  };
+
+  const getFirstLetter = () => {
+    if (!user || !user.nickname) return '';
+    return user.nickname.trim().charAt(0).toUpperCase();
+  };
 
   return (
     <header className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50 flex items-center justify-between h-[72px] px-5 bg-[var(--color-surface)] border-b border-[var(--color-divider)]">
@@ -42,20 +53,25 @@ export function Header({ title = '고기시세', rightAction = null, onActionCli
           </button>
         )}
 
-        {/* 인증 상태 표시 (클린 아키텍처 원칙 준수) */}
-        {!isAuthenticated ? null : (
-          <div className="flex items-center gap-1">
-            <span className="text-sm text-[var(--text-strong)] hidden sm:inline-block max-w-[60px] truncate">
-              {user?.nickname || user?.email?.split('@')[0]}
-            </span>
-            <button
-              onClick={logout}
-              className="text-sm text-[var(--text-muted)] p-2 -mr-2 active:scale-95 transition-transform whitespace-nowrap"
-            >
-              로그아웃
-            </button>
-          </div>
-        )}
+        {/* 💡 [한글 주석] 프로필 아바타: 로그인 시 닉네임 첫 자, 로그아웃 시 기본 실루엣 SVG 출력 및 클릭 시 설정 라우팅 연동 */}
+        <button
+          onClick={handleProfileClick}
+          className="w-10 h-10 rounded-full flex items-center justify-center border border-[var(--color-border)] shadow-soft active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+          style={{
+            backgroundColor: isAuthenticated ? 'rgba(59, 145, 200, 0.1)' : 'var(--color-surface-soft)',
+            color: isAuthenticated ? 'var(--color-secondary)' : 'var(--text-light)',
+          }}
+          aria-label="설정 페이지로 이동"
+        >
+          {isAuthenticated && getFirstLetter() ? (
+            <span className="text-body font-black select-none">{getFirstLetter()}</span>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          )}
+        </button>
       </div>
     </header>
   );
