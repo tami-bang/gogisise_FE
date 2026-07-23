@@ -3,8 +3,8 @@ import { Line, LineChart, ResponsiveContainer, Tooltip } from 'recharts';
 // 💡 훅(Hook): 특정 기능을 재사용 가능하도록 묶어놓은 함수. 음식점 주방의 '레시피 카드'와 같습니다.
 import { usePriceDetail } from '../../../hooks/usePriceDetail';
 import type { TrendStatus } from '../../../api/types/market';
-import { useFavorites } from '../../../hooks/useFavorites';
 import { useFavoriteMutation } from '../../../hooks/useFavoriteMutation';
+import { useFavoritePrices } from '../../../hooks/useFavoritePrices'; // 💡 [한글 주석] 로그인 여부에 따른 즐겨찾기 상태 동기화용 훅 임포트
 import { Toast } from '../../common/Toast';
 
 interface PriceDetailSheetProps {
@@ -219,7 +219,15 @@ export function PriceDetailSheet({ isOpen, itemId, initialGrade, onClose, onFavo
   }, [items]);
 
   // 6.5. 즐겨찾기 상태 판단 및 추가/삭제 Mutation
-  const { isFavorite } = useFavorites();
+
+  // 💡 [한글 주석] 로그인 유무에 상관없이 통일된 즐겨찾기 아이템 목록을 획득하기 위해 useFavoritePrices 연동
+  const { favoriteItemIds } = useFavoritePrices({
+    animalType: detail?.animalType || null,
+    storageType: detail?.storageType || 'CHILLED',
+    page: 1,
+    limit: 1000,
+  });
+
   const { addFavorite: mutateAdd, removeFavorite: mutateRemove } = useFavoriteMutation({
     onSuccess: () => {
       // 상세 시세에서 즐겨찾기 상태 변경 성공 시, 메인화면 목록 자동 갱신
@@ -238,10 +246,11 @@ export function PriceDetailSheet({ isOpen, itemId, initialGrade, onClose, onFavo
     return detail.itemId;
   }, [detail, activeTab, groupedItems]);
 
+  // 💡 [한글 주석] 로그인 유무에 따라 서버 즐겨찾기 ID 목록 또는 로컬 즐겨찾기 목록을 바탕으로 정량 매칭
   const isCurrentFavorite = useMemo(() => {
     if (!targetFavoriteItemId) return false;
-    return isFavorite(targetFavoriteItemId);
-  }, [targetFavoriteItemId, isFavorite]);
+    return favoriteItemIds.includes(targetFavoriteItemId);
+  }, [targetFavoriteItemId, favoriteItemIds]);
 
   const handleFavoriteToggle = async () => {
     if (!targetFavoriteItemId || !detail) return;
