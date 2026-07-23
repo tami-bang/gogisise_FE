@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainPage } from './pages/MainPage';
 import { AllPricesPage } from './pages/AllPricesPage';
@@ -18,14 +17,6 @@ function AppContent() {
   // 보안: 앱 부트스트랩 시 Silent Refresh 수행 (토큰 무실점 복구)
   // const { isInitializing } = useInitializeAuth();
   const { isAuthSheetOpen, closeAuthSheet } = useAuth();
-
-  // 💡 [한글 주석] 앱 최초 구동 시 백엔드의 서버리스 콜드 스타트를 사전에 예열하여 깨우는 핑(Ping) API 비동기 호출
-  useEffect(() => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-    fetch(baseUrl).catch((err) => {
-      console.warn('[Warm-up] Failed to ping backend base URL', err);
-    });
-  }, []);
 
   // if (isInitializing) {
   //   return (
