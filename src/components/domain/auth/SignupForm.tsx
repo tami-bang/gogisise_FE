@@ -1,6 +1,7 @@
 // src/components/domain/auth/SignupForm.tsx
 
 import { useState } from 'react';
+import { createPortal } from 'react-dom'; // 💡 [한글 주석] 최상위 body 렌더링을 위한 Portal 임포트
 import { useAuth } from '../../../hooks/useAuth';
 import { Button } from '../../common/Button';
 import {
@@ -312,8 +313,8 @@ export function SignupForm({ onSwitchToLogin, onSuccess }: Props) {
         </div>
       </div>
 
-      {/* 💡 [한글 주석] 이용약관 및 개인정보 처리방침 오버레이 팝업 모달 */}
-      {isTermsModalOpen && (
+      {/* 💡 [한글 주석] 이용약관 및 개인정보 처리방침 오버레이 팝업 모달 (React Portal로 body에 직접 붙여 부모 transform 영향 차단) */}
+      {isTermsModalOpen && createPortal(
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
           {/* Backdrop */}
           <div 
@@ -374,7 +375,8 @@ export function SignupForm({ onSwitchToLogin, onSuccess }: Props) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </form>
   );
