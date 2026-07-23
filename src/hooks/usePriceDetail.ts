@@ -30,6 +30,15 @@ const toPriceDetailError = (error: unknown): PriceDetailError => {
   };
 };
 
+interface DetailCacheEntry {
+  detail: AggregatedPriceDetail;
+  fetchedAt: number;
+}
+
+// 💡 [한글 주석] 상세 시세 데이터를 보관할 전역 메모리 맵 캐시 및 30초 수명 설정
+const detailCache = new Map<string, DetailCacheEntry>();
+const DETAIL_CACHE_TTL = 30 * 1000; // 30초
+
 export const usePriceDetail = (
   itemId: string | null,
   params: UsePriceDetailParams = {}
@@ -39,10 +48,19 @@ export const usePriceDetail = (
   const [detail, setDetail] = useState<AggregatedPriceDetail | null>(null);
   const [error, setError] = useState<PriceDetailError | null>(null);
 
-  const fetchDetail = useCallback(async () => {
+  // 💡 [한글 주석] force 매개변수가 false이고 30초 이내에 동일한 품목을 이미 불러온 캐시가 있다면 API 호출 생략
+  const fetchDetail = useCallback(async (force = false) => {
     if (!enabled || !itemId) {
       setStatus('idle');
       setDetail(null);
+      setError(null);
+      return;
+    }
+
+    const cached = detailCache.get(itemId);
+    if (!force && cached && (Date.now() - cached.fetchedAt < DETAIL_CACHE_TTL)) {
+      setDetail(cached.detail);
+      setStatus('success');
       setError(null);
       return;
     }
@@ -66,6 +84,11 @@ export const usePriceDetail = (
         setStatus('empty');
         setDetail(null);
       } else {
+        // 💡 [한글 주석] 성공적으로 받아온 시세 내역은 30초 동안 메모리에 보관
+        detailCache.set(itemId, {
+          detail: result,
+          fetchedAt: Date.now(),
+        });
         setDetail(result);
         setStatus('success');
       }
@@ -78,49 +101,10 @@ export const usePriceDetail = (
     }
   }, [accessToken, enabled, itemId]);
 
+  // 💡 [한글 주석] 마운트 및 itemId 변경 시 캐시를 우선(force = false)하여 데이터 요청을 보냅니다.
   useEffect(() => {
-    if (!enabled || !itemId) {
-      setStatus('idle');
-      setDetail(null);
-      setError(null);
-      return;
-    }
-
-    const controller = new AbortController();
-    setStatus('loading');
-    setError(null);
-
-    marketService
-      .getPriceDetail(itemId, {
-        accessToken,
-        signal: controller.signal,
-      })
-      .then((result) => {
-        if (controller.signal.aborted) return;
-        // 💡 한국어 주석: sourceRecords(집계데이터)가 없어도 sourceItems(크롤링 매물)가 있으면 성공으로 처리합니다.
-        const hasData =
-          (result?.sourceRecords?.length ?? 0) > 0 ||
-          (result?.sourceItems?.length ?? 0) > 0;
-        if (!result || !hasData) {
-          setStatus('empty');
-          setDetail(null);
-        } else {
-          setDetail(result);
-          setStatus('success');
-        }
-      })
-      .catch((e) => {
-        if (controller.signal.aborted) return;
-        console.error(e);
-        setError(toPriceDetailError(e));
-        setStatus('error');
-        setDetail(null);
-      });
-
-    return () => {
-      controller.abort();
-    };
-  }, [accessToken, enabled, itemId]);
+    fetchDetail(false);
+  }, [fetchDetail]);
 
   return {
     status,

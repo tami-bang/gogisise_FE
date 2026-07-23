@@ -73,20 +73,65 @@ const fetchMarketItems = async (
   return inFlightPromise;
 };
 
+const MARKET_ITEMS_CACHE_KEY = 'gogisise:cache:market_items';
+const MARKET_ITEMS_CACHE_DATE_KEY = 'gogisise:cache:market_items_date';
+const MARKET_ITEMS_CACHE_DATASTATUS_KEY = 'gogisise:cache:market_items_datastatus';
+
 export function useMarketItems(params: UseMarketItemsParams = {}) {
   const { enabled = true, accessToken = null } = params;
-  const [status, setStatus] = useState<AsyncStatus>('idle');
-  const [items, setItems] = useState<PriceItem[]>([]);
-  const [marketDate, setMarketDate] = useState<string | null>(null);
-  const [dataStatus, setDataStatus] = useState<DataStatus | null>(null);
+
+  // 💡 [한글 주석] 첫 마운트 시 로딩 대기를 피하기 위해 로컬스토리지에 캐시된 마켓 아이템 목록을 초기 상태로 즉시 세팅
+  const [items, setItems] = useState<PriceItem[]>(() => {
+    try {
+      const cached = localStorage.getItem(MARKET_ITEMS_CACHE_KEY);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [marketDate, setMarketDate] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(MARKET_ITEMS_CACHE_DATE_KEY);
+    } catch {
+      return null;
+    }
+  });
+
+  const [dataStatus, setDataStatus] = useState<DataStatus | null>(() => {
+    try {
+      return localStorage.getItem(MARKET_ITEMS_CACHE_DATASTATUS_KEY) as DataStatus | null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [status, setStatus] = useState<AsyncStatus>(() => {
+    try {
+      const cached = localStorage.getItem(MARKET_ITEMS_CACHE_KEY);
+      return cached && JSON.parse(cached).length > 0 ? 'success' : 'idle';
+    } catch {
+      return 'idle';
+    }
+  });
+
   const [error, setError] = useState<AsyncError | null>(null);
 
+  // 💡 [한글 주석] API 데이터 갱신 완료 시 로컬스토리지 캐시 저장소를 함께 동기화
   const applyCache = useCallback((cache: MarketItemsCache) => {
     setItems(cache.items);
     setMarketDate(cache.marketDate);
     setDataStatus(cache.dataStatus);
     setStatus(cache.items.length > 0 ? 'success' : 'empty');
     setError(null);
+
+    try {
+      localStorage.setItem(MARKET_ITEMS_CACHE_KEY, JSON.stringify(cache.items));
+      if (cache.marketDate) localStorage.setItem(MARKET_ITEMS_CACHE_DATE_KEY, cache.marketDate);
+      if (cache.dataStatus) localStorage.setItem(MARKET_ITEMS_CACHE_DATASTATUS_KEY, cache.dataStatus);
+    } catch (e) {
+      console.warn('Failed to sync market items cache to localStorage', e);
+    }
   }, []);
 
   const refetch = useCallback(async () => {

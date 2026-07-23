@@ -457,7 +457,7 @@ export function PriceDetailSheet({ isOpen, itemId, initialGrade, onClose, onFavo
           <div className="py-12 text-center flex flex-col items-center gap-4">
             <p className="text-gray-500">데이터를 불러오지 못했습니다.</p>
             <button
-              onClick={refetch}
+              onClick={() => refetch(true)} // 💡 [한글 주석] 재시도 클릭 시 강제 새로고침(force=true) 수행하도록 함수 래핑하여 타입 호환 오류 해결
               className="px-6 py-2 bg-gray-100 text-gray-700 rounded-full font-bold hover:bg-gray-200 transition-colors"
             >
               다시 시도

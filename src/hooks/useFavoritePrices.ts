@@ -46,6 +46,8 @@ export const notifyServerFavoritesChanged = () => {
   window.dispatchEvent(new CustomEvent(SERVER_FAVORITES_CHANGE_EVENT));
 };
 
+const SERVER_FAVORITES_CACHE_KEY = 'gogisise:cache:server_favorites';
+
 export function useFavoritePrices({
   animalType,
   storageType,
@@ -57,8 +59,27 @@ export function useFavoritePrices({
   const { favorites: localFavorites } = useFavorites();
   const { items: marketItems, status: marketStatus } = useMarketItems({ enabled: !isAuthenticated });
 
-  const [serverFavorites, setServerFavorites] = useState<PriceItem[]>(() => serverFavoriteCache ?? []);
-  const [serverStatus, setServerStatus] = useState<AsyncStatus>(serverFavoriteCache ? 'success' : 'idle');
+  // 💡 [한글 주석] 마운트 대기를 줄이기 위해 로컬스토리지에 있는 백업된 즐겨찾기 리스트를 초기 상태로 즉시 세팅
+  const [serverFavorites, setServerFavorites] = useState<PriceItem[]>(() => {
+    if (serverFavoriteCache) return serverFavoriteCache;
+    try {
+      const cached = localStorage.getItem(SERVER_FAVORITES_CACHE_KEY);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [serverStatus, setServerStatus] = useState<AsyncStatus>(() => {
+    if (serverFavoriteCache) return 'success';
+    try {
+      const cached = localStorage.getItem(SERVER_FAVORITES_CACHE_KEY);
+      return cached && JSON.parse(cached).length > 0 ? 'success' : 'idle';
+    } catch {
+      return 'idle';
+    }
+  });
+
   const [error, setError] = useState<AsyncError | null>(null);
 
   // 💡 [한글 주석] force가 false이고 메모리 캐시 유효 기간(30초) 이내면 API 호출을 건너뛰고 기존 캐시 사용
@@ -86,6 +107,14 @@ export function useFavoritePrices({
       if (controller.signal.aborted) return;
       serverFavoriteCache = result;
       serverFavoriteCacheTime = Date.now(); // 캐시 시각 기록
+      
+      // 💡 [한글 주석] 최신 불러온 즐겨찾기를 로컬 스토리지 캐시에 동기화
+      try {
+        localStorage.setItem(SERVER_FAVORITES_CACHE_KEY, JSON.stringify(result));
+      } catch (e) {
+        console.warn('Failed to sync server favorites to localStorage', e);
+      }
+
       setServerFavorites(result);
       setServerStatus(result.length > 0 ? 'success' : 'empty');
     } catch (err) {
@@ -110,11 +139,16 @@ export function useFavoritePrices({
     refetch(false);
   }, [isAuthenticated, refetch]);
 
-  // 💡 [한글 주석] 즐겨찾기 변경 이벤트 발생 시 캐시 메모리를 무효화하고 force=true로 강제 새로고침
+  // 💡 [한글 주석] 즐겨찾기 변경 이벤트 발생 시 메모리 및 로컬스토리지를 모두 지우고 force=true 강제 갱신
   useEffect(() => {
     const handleChange = () => {
       serverFavoriteCache = null;
       serverFavoriteCacheTime = 0; // 캐시 무효화
+      try {
+        localStorage.removeItem(SERVER_FAVORITES_CACHE_KEY);
+      } catch (e) {
+        // ignore
+      }
       refetch(true); // 강제 갱신
     };
     window.addEventListener(SERVER_FAVORITES_CHANGE_EVENT, handleChange);
