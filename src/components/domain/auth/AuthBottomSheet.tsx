@@ -1,11 +1,12 @@
 // src/components/domain/auth/AuthBottomSheet.tsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LoginForm } from './LoginForm';
 import { SignupForm } from './SignupForm';
 import { MagicLinkForm } from './MagicLinkForm';
 import { FindEmailForm } from './FindEmailForm';
 import { useAuthContext } from '../../../contexts/AuthContext';
+import { useAuth } from '../../../hooks/useAuth';
 
 interface Props {
   isOpen: boolean;
@@ -16,7 +17,16 @@ type AuthMode = 'login' | 'signup' | 'magicLink' | 'findEmail';
 
 export function AuthBottomSheet({ isOpen, onClose }: Props) {
   const { user } = useAuthContext();
+  const { setError: setAuthError } = useAuth(); // 💡 [한글 주석] 로그인 실패 에러 메세지 리셋을 위한 useAuth 연동
   const [mode, setMode] = useState<AuthMode>('login');
+
+  // 💡 [한글 주석] 모달의 열림 상태(isOpen)가 false로 변하는 시점(닫힐 때)에 내부 서브뷰 상태를 'login'으로 자동 초기화
+  useEffect(() => {
+    if (!isOpen) {
+      setMode('login');
+      setAuthError(null);
+    }
+  }, [isOpen, setAuthError]);
 
   if (!isOpen) return null;
 
@@ -33,6 +43,12 @@ export function AuthBottomSheet({ isOpen, onClose }: Props) {
       case 'magicLink': return '비밀번호 찾기';
       case 'findEmail': return '이메일 찾기';
     }
+  };
+
+  const handleClose = () => {
+    setAuthError(null);
+    setMode('login');
+    onClose();
   };
 
   const handleBack = () => {
@@ -73,7 +89,7 @@ export function AuthBottomSheet({ isOpen, onClose }: Props) {
               </h2>
             </div>
             <button 
-              onClick={onClose}
+              onClick={handleClose}
               className="p-2 -mr-2 text-[var(--text-muted)] hover:bg-[var(--color-surface-soft)] rounded-full transition-colors"
               aria-label="닫기"
             >
@@ -89,13 +105,13 @@ export function AuthBottomSheet({ isOpen, onClose }: Props) {
                   onSwitchToSignup={() => setMode('signup')}
                   onSwitchToMagicLink={() => setMode('magicLink')}
                   onSwitchToFindEmail={() => setMode('findEmail')}
-                  onSuccess={onClose}
+                  onSuccess={handleClose}
                 />
               )}
               {mode === 'signup' && (
                 <SignupForm 
                   onSwitchToLogin={() => setMode('login')}
-                  onSuccess={onClose}
+                  onSuccess={handleClose}
                 />
               )}
               {mode === 'magicLink' && (
