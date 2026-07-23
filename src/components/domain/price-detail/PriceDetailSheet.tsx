@@ -281,6 +281,9 @@ export function PriceDetailSheet({ isOpen, itemId, initialGrade, onClose, onFavo
   // 한우는 실제 등급 탭을 사용하고, 등급 체계가 없는 한돈은 전체 탭에서
   // ACTIVE 매물을 그대로 노출합니다. NULL 등급을 1등급으로 위장하지 않습니다.
   useEffect(() => {
+    // 💡 [한글 주석] 데이터 로드가 성공한 시점(success)에만 등급 탭 유효성 검사 및 자동 변경을 처리하도록 변경하여 로딩 중 오버라이딩 방지
+    if (status !== 'success') return;
+
     if (!hasGradedItems) {
       if (activeTab !== ALL_ITEMS_TAB) setActiveTab(ALL_ITEMS_TAB);
       return;
@@ -288,7 +291,7 @@ export function PriceDetailSheet({ isOpen, itemId, initialGrade, onClose, onFavo
     if (activeTab !== ALL_ITEMS_TAB && groupedItems[activeTab]?.length > 0) return;
     const firstAvailableGrade = GRADE_TABS.find((grade) => groupedItems[grade].length > 0);
     if (firstAvailableGrade) setActiveTab(firstAvailableGrade);
-  }, [activeTab, groupedItems, hasGradedItems]);
+  }, [status, activeTab, groupedItems, hasGradedItems]);
 
   // 8. ESC 키 → 닫기 바인딩
   useEffect(() => {
