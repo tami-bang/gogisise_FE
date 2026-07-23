@@ -66,6 +66,27 @@ export function MainPage() {
   const [isSharing, setIsSharing] = useState(false);
   const [lastFocusedElement, setLastFocusedElement] = useState<HTMLElement | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  // 💡 [한글 주석] 선택한 즐겨찾기 품목의 기본 활성화 등급 (예: '1+')을 보관하는 상태
+  const [selectedInitialGrade, setSelectedInitialGrade] = useState<string | null>(null);
+
+  // 💡 [한글 주석] 카테고리 클릭 시 즐겨찾기된 등급이 있는지 분석하여 상세 모달에 넘겨주는 핸들러
+  const handleCategoryClick = (node: any) => {
+    if (!node.hasApiData) return;
+
+    // 현재 사용자가 가진 즐겨찾기 가격 목록(items)에서 일치하는 품목을 조회
+    const matchedFav = items.find(
+      (item) =>
+        item.category.trim() === node.name.trim() &&
+        item.species === animalType &&
+        item.storageType === storageType
+    );
+
+    // 한우이고 즐겨찾기 품목에 등급이 지정되어 있으면 해당 등급을 기본 탭으로 활성화
+    const initialGrade = animalType === 'BEEF' ? (matchedFav?.grade || null) : null;
+
+    setSelectedInitialGrade(initialGrade);
+    setSelectedItemId(`path:${node.path}`);
+  };
 
   const mainRef = useRef<HTMLElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -73,7 +94,11 @@ export function MainPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
 
+  // 💡 [한글 주석] 카테고리 트리 데이터의 로컬 스토리지 캐시 키 및 30분 유효 기간(TTL) 설정
   const CATEGORY_CACHE_KEY = 'gogisise:cache:category_tree';
+  const CATEGORY_CACHE_TIME_KEY = 'gogisise:cache:category_tree_time';
+  const CATEGORY_CACHE_TTL = 30 * 60 * 1000; // 30분 (밀리초 단위)
+
   const [categories, setCategories] = useState<CategoryNode[]>(() => {
     try {
       const cached = localStorage.getItem(CATEGORY_CACHE_KEY);
@@ -97,7 +122,24 @@ export function MainPage() {
     scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const fetchCategoryTree = async () => {
+  // 💡 [한글 주석] force 매개변수가 false이고 캐시가 아직 유효(30분 이내)하다면 API 호출을 건너뛰도록 개선
+  const fetchCategoryTree = async (force = false) => {
+    try {
+      const cached = localStorage.getItem(CATEGORY_CACHE_KEY);
+      const cachedTime = localStorage.getItem(CATEGORY_CACHE_TIME_KEY);
+      
+      if (!force && cached && cachedTime) {
+        const age = Date.now() - Number(cachedTime);
+        if (age < CATEGORY_CACHE_TTL) {
+          // 캐시가 유통기한 내에 있으므로 백엔드 요청 없이 그대로 사용
+          setLoadingCategories(false);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to check category cache age', e);
+    }
+
     setLoadingCategories(() => {
       try {
         return !localStorage.getItem(CATEGORY_CACHE_KEY);
@@ -111,6 +153,7 @@ export function MainPage() {
       setCategories(data);
       try {
         localStorage.setItem(CATEGORY_CACHE_KEY, JSON.stringify(data));
+        localStorage.setItem(CATEGORY_CACHE_TIME_KEY, Date.now().toString()); // 캐시 저장 시간 기록
       } catch (e) {
         console.warn('Failed to cache category tree', e);
       }
@@ -123,7 +166,7 @@ export function MainPage() {
   };
 
   useEffect(() => {
-    fetchCategoryTree();
+    fetchCategoryTree(false); // 마운트 시에는 캐시된 데이터를 우선 활용하도록 force=false
   }, []);
 
   const targetMasterList = useMemo(() => {
@@ -370,7 +413,7 @@ export function MainPage() {
                     <button
                       key={node.ctgNo}
                       disabled={!hasData}
-                      onClick={() => hasData && setSelectedItemId(`path:${node.path}`)}
+                      onClick={() => handleCategoryClick(node)}
                       className={`w-full text-left bg-[var(--color-surface)] p-[var(--spacing-20)] rounded-[var(--radius-xl)] border border-[var(--color-divider)] shadow-soft transition-all duration-200 flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] ${
                         hasData 
                           ? 'active:scale-[0.98] active:bg-[rgba(59,145,200,0.05)] cursor-pointer' 
@@ -429,7 +472,11 @@ export function MainPage() {
       <PriceDetailSheet
         isOpen={selectedItemId !== null}
         itemId={selectedItemId}
-        onClose={() => setSelectedItemId(null)}
+        initialGrade={selectedInitialGrade}
+        onClose={() => {
+          setSelectedItemId(null);
+          setSelectedInitialGrade(null);
+        }}
         onFavoriteRemoved={() => {
           refetchFavorites();
           const focusTarget = document.getElementById('price-list-header');

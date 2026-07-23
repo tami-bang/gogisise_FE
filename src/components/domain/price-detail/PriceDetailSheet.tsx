@@ -10,6 +10,7 @@ import { Toast } from '../../common/Toast';
 interface PriceDetailSheetProps {
   isOpen: boolean;
   itemId: string | null;
+  initialGrade?: string | null; // 💡 [한글 주석] 초기 활성화할 등급 탭 정보
   onClose: () => void;
   onFavoriteRemoved?: () => void; // 선택적 속성으로 유지 (MainPage 호환용)
 }
@@ -118,7 +119,7 @@ const SORT_OPTIONS: Array<{ value: SortOption; label: string }> = [
   { value: 'TOTAL_PRICE_DESC', label: '판매가 높은 순' },
 ];
 
-export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _onFavoriteRemoved }: PriceDetailSheetProps) {
+export function PriceDetailSheet({ isOpen, itemId, initialGrade, onClose, onFavoriteRemoved: _onFavoriteRemoved }: PriceDetailSheetProps) {
   // 4. 💡 핵심: 실제로 백엔드 API에서 데이터를 가져오는 훅 연결
   // status: 'idle' | 'loading' | 'success' | 'empty' | 'error' 중 하나를 가집니다.
   const { status, detail, refetch } = usePriceDetail(isOpen ? itemId : null);
@@ -132,6 +133,18 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
   );
 
   const [activeTab, setActiveTab] = useState<string>(GRADE_TABS[0]);
+
+  // 💡 [한글 주석] 모달이 열릴 때(isOpen === true) 전달받은 initialGrade가 있으면 해당 등급 탭을 활성화
+  useEffect(() => {
+    if (isOpen) {
+      if (initialGrade) {
+        setActiveTab(initialGrade);
+      } else {
+        // 지정된 기본 등급이 없으면 1++ 등급을 기본 탭으로 설정
+        setActiveTab(GRADE_TABS[0]);
+      }
+    }
+  }, [isOpen, initialGrade]);
   const [sortOption, setSortOption] = useState<SortOption>('PRICE_PER_KG_ASC');
   const [selectedChartDate, setSelectedChartDate] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState('');
@@ -496,7 +509,7 @@ export function PriceDetailSheet({ isOpen, itemId, onClose, onFavoriteRemoved: _
                 <span className="text-sm" aria-hidden="true">
                   {isCurrentFavorite ? '★' : '☆'}
                 </span>
-                <span>즐겨찾기</span>
+                <span>{isCurrentFavorite ? '즐겨찾기 해제' : '즐겨찾기'}</span>
               </button>
             </div>
 
