@@ -116,7 +116,7 @@ export function LoginForm({ onSwitchToSignup, onSwitchToMagicLink, onSwitchToFin
             <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
           </svg>
         </div>
-        <h3 className="text-title-lg font-bold text-[var(--color-primary)] leading-none mt-1">도매 시세</h3>
+        <h3 className="text-title-lg font-bold text-[var(--color-primary)] leading-none mt-1">고기시세</h3>
         <p className="text-caption text-[var(--text-muted)] text-center leading-none mt-1">베테랑 사장님을 위한 실시간 고기 시세 서비스</p>
       </div>
 

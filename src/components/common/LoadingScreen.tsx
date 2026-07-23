@@ -9,7 +9,7 @@ export function LoadingScreen() {
             고기시세
           </h1>
           <p className="text-caption text-[var(--text-light)]">
-            오늘의 축산물 도매 시세 가이드
+            오늘의 축산물 고기 시세 가이드
           </p>
         </div>
 
