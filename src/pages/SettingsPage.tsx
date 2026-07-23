@@ -3,7 +3,6 @@ import { PageLayout } from '../components/common/PageLayout';
 import { Header } from '../components/common/Header';
 import { Footer } from '../components/common/Footer';
 import { FontSizeSelector } from '../components/common/FontSizeSelector';
-import { FavoriteManager } from '../components/domain/FavoriteManager';
 import { useAuthContext } from '../contexts/AuthContext';
 import { useAuth } from '../hooks/useAuth';
 import { userService } from '../api/services/userService'; // 💡 [한글 주석] 신규 회원수정/비번변경/탈퇴 API 연동
@@ -264,24 +263,12 @@ export function SettingsPage() {
             </div>
 
           </div>
-        ) : (
-          // 비로그인용 설정 상단 빈 유도 영역 (안내문구 및 3초 로그인)
-          <div className="w-full">
-            <FavoriteManager />
-          </div>
-        )}
+        ) : null}
 
         {/* 기존 설정 기능: 글자 크기 조절 */}
         <div className="w-full bg-white rounded-2xl p-5 border border-[var(--color-border)] shadow-sm">
           <FontSizeSelector />
         </div>
-
-        {/* 로그인 상태인 경우, 하단에 즐겨찾기 목록 배치 */}
-        {user && (
-          <div className="w-full">
-            <FavoriteManager />
-          </div>
-        )}
       </div>
 
       <Footer activeTab="settings" />
