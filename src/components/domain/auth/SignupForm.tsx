@@ -29,6 +29,7 @@ export function SignupForm({ onSwitchToLogin, onSuccess }: Props) {
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   
   const [isAgreed, setIsAgreed] = useState(false);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false); // 💡 [한글 주석] 약관 보기 팝업 상태 추가
 
   const [errors, setErrors] = useState({
     email: '',
@@ -278,7 +279,11 @@ export function SignupForm({ onSwitchToLogin, onSuccess }: Props) {
           <label htmlFor="terms-checkbox" className="text-sm font-bold text-[var(--text-strong)] cursor-pointer">
             전체 약관에 동의합니다
           </label>
-          <button type="button" className="text-xs text-[var(--text-muted)] underline text-left mt-1 w-fit">
+          <button 
+            type="button" 
+            onClick={() => setIsTermsModalOpen(true)}
+            className="text-xs text-[var(--text-muted)] underline text-left mt-1 w-fit active:scale-95 transition-transform"
+          >
             이용약관 및 개인정보 처리방침 보기
           </button>
         </div>
@@ -306,6 +311,71 @@ export function SignupForm({ onSwitchToLogin, onSuccess }: Props) {
           </button>
         </div>
       </div>
+
+      {/* 💡 [한글 주석] 이용약관 및 개인정보 처리방침 오버레이 팝업 모달 */}
+      {isTermsModalOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/60 transition-opacity" 
+            onClick={() => setIsTermsModalOpen(false)}
+          />
+          
+          {/* Modal Container */}
+          <div className="relative w-full max-w-sm bg-[var(--color-bg)] rounded-2xl shadow-xl z-10 flex flex-col max-h-[75vh] border border-[var(--color-border)] animate-fade-in">
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-[var(--color-divider)]">
+              <h3 className="text-md font-bold text-[var(--text-strong)]">이용약관 및 개인정보 처리방침</h3>
+              <button 
+                onClick={() => setIsTermsModalOpen(false)}
+                className="text-[var(--text-muted)] p-1 hover:bg-[var(--color-surface-soft)] rounded-full transition-colors focus:outline-none"
+                aria-label="닫기"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* Scrollable Content */}
+            <div className="p-5 overflow-y-auto flex flex-col gap-5 text-sm text-[var(--text-strong)] leading-relaxed whitespace-pre-wrap">
+              <div>
+                <h4 className="font-bold text-[var(--color-primary)] mb-2">[이용약관]</h4>
+                <p className="font-bold mb-1">제1조 (목적)</p>
+                <p className="text-[var(--text-light)] mb-3">본 약관은 "고기시세"(이하 "회사"라 합니다)가 제공하는 도매 고기 시세 조회 및 관련 서비스(이하 "서비스"라 합니다)의 이용조건 및 절차, 회사와 회원간의 권리, 의무 및 책임사항 등을 규정함을 목적으로 합니다.</p>
+                
+                <p className="font-bold mb-1">제2조 (용어의 정의)</p>
+                <p className="text-[var(--text-light)] mb-1">1. "서비스"란 회사가 구현한 PC, 모바일 등 기기와 상관없이 회원이 이용할 수 있는 도매 고기 시세 정보 및 관련 부가 서비스를 의미합니다.</p>
+                <p className="text-[var(--text-light)] mb-3">2. "회원"이란 회사의 서비스에 접속하여 본 약관에 동의하고 회사가 제공하는 아이디를 부여받은 자를 말합니다.</p>
+                
+                <p className="font-bold mb-1">제3조 (약관의 효력과 개정)</p>
+                <p className="text-[var(--text-light)] mb-1">1. 본 약관은 서비스 화면에 게시하거나 기타의 방법으로 회원에게 공지함으로써 효력이 발생합니다.</p>
+                <p className="text-[var(--text-light)]">2. 회사는 필요하다고 인정되는 경우 관련 법령을 위배하지 않는 범위 내에서 본 약관을 개정할 수 있습니다.</p>
+              </div>
+              
+              <div className="border-t border-[var(--color-divider)] pt-5">
+                <h4 className="font-bold text-[var(--color-primary)] mb-2">[개인정보 처리방침]</h4>
+                <p className="font-bold mb-1">제1조 (개인정보의 수집 및 이용 목적)</p>
+                <p className="text-[var(--text-light)] mb-2">"고기시세"는 회원가입, 원활한 고객 상담, 각종 서비스 제공을 위해 아래와 같은 개인정보를 수집하고 있습니다.</p>
+                <p className="text-[var(--text-light)] mb-1">- 수집 항목: 아이디(이메일), 비밀번호, 휴대폰 번호, 닉네임</p>
+                <p className="text-[var(--text-light)] mb-3">- 수집 및 이용 목적: 회원 식별, 도매 고기 시세 서비스 제공, 즐겨찾기 및 맞춤 설정 관리, 공지사항 전달</p>
+                
+                <p className="font-bold mb-1">제2조 (개인정보의 보유 및 이용 기간)</p>
+                <p className="text-[var(--text-light)]">회원 탈퇴 시 혹은 개인정보 수집 및 이용 목적이 달성된 후에는 해당 정보를 지체 없이 파기합니다. 단, 관계법령의 규정에 의하여 보존할 필요가 있는 경우 회사는 법령에서 정한 기간 동안 회원정보를 보관합니다.</p>
+              </div>
+            </div>
+            
+            {/* Footer Button */}
+            <div className="p-4 border-t border-[var(--color-divider)] bg-[var(--color-surface)] rounded-b-2xl">
+              <button 
+                type="button"
+                onClick={() => setIsTermsModalOpen(false)}
+                className="w-full h-12 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-bold rounded-[var(--radius-md)] active:scale-95 transition-all duration-200"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }
