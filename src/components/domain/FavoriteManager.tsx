@@ -75,17 +75,13 @@ export function FavoriteManager() {
 
       <div className="flex-1 py-[var(--spacing-16)] overflow-y-auto">
         {!isAuthenticated ? (
-          <div className="h-full flex flex-col items-center justify-center gap-[var(--spacing-16)]">
+          <div className="h-full flex flex-col items-center justify-center">
             <EmptyState 
               title="로그인이 필요한 서비스입니다." 
               description="즐겨찾기를 이용하시려면 로그인을 진행해 주세요." 
+              actionLabel="3초만에 로그인하기"
+              onAction={openAuthSheet}
             />
-            <button
-              onClick={openAuthSheet}
-              className="px-6 py-3 bg-[var(--color-primary)] text-white font-bold rounded-[var(--radius-xl)] active:scale-95 transition-transform"
-            >
-              3초만에 로그인하기
-            </button>
           </div>
         ) : loading ? (
           <ListSkeleton count={3} />

@@ -322,7 +322,7 @@ export function SignupForm({ onSwitchToLogin, onSuccess }: Props) {
           />
           
           {/* Modal Container */}
-          <div className="relative w-full max-w-sm bg-[var(--color-bg)] rounded-2xl shadow-xl z-10 flex flex-col max-h-[75vh] border border-[var(--color-border)] animate-fade-in">
+          <div className="relative w-full max-w-sm bg-[var(--color-bg)] rounded-2xl shadow-xl z-10 flex flex-col max-h-[80vh] overflow-hidden border border-[var(--color-border)] animate-pop-in">
             {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-[var(--color-divider)]">
               <h3 className="text-md font-bold text-[var(--text-strong)]">이용약관 및 개인정보 처리방침</h3>
@@ -336,7 +336,7 @@ export function SignupForm({ onSwitchToLogin, onSuccess }: Props) {
             </div>
             
             {/* Scrollable Content */}
-            <div className="p-5 overflow-y-auto flex flex-col gap-5 text-sm text-[var(--text-strong)] leading-relaxed whitespace-pre-wrap">
+            <div className="p-5 flex-1 overflow-y-auto flex flex-col gap-5 text-sm text-[var(--text-strong)] leading-relaxed whitespace-pre-wrap">
               <div>
                 <h4 className="font-bold text-[var(--color-primary)] mb-2">[이용약관]</h4>
                 <p className="font-bold mb-1">제1조 (목적)</p>
@@ -364,7 +364,7 @@ export function SignupForm({ onSwitchToLogin, onSuccess }: Props) {
             </div>
             
             {/* Footer Button */}
-            <div className="p-4 border-t border-[var(--color-divider)] bg-[var(--color-surface)] rounded-b-2xl">
+            <div className="shrink-0 p-4 border-t border-[var(--color-divider)] bg-[var(--color-surface)] rounded-b-2xl">
               <button 
                 type="button"
                 onClick={() => setIsTermsModalOpen(false)}

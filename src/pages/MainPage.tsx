@@ -416,7 +416,7 @@ export function MainPage() {
                     <EmptyState
                       title={searchQuery.trim() ? `"${searchQuery.trim()}"에 해당하는 즐겨찾기 부위가 없습니다.` : '즐겨찾기한 품목이 없습니다.'}
                       description={searchQuery.trim() ? '다른 부위를 검색해 보세요.' : '전체 시세에서 품목을 즐겨찾기에 추가해 보세요.'}
-                      actionLabel={searchQuery.trim() ? undefined : '전체 시세로 이동'}
+                      actionLabel={searchQuery.trim() ? undefined : '전체 시세에서 품목 찾기'}
                       onAction={searchQuery.trim() ? undefined : handleNavigateToAll}
                     />
                   </div>

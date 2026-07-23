@@ -59,13 +59,14 @@ export function AuthBottomSheet({ isOpen, onClose }: Props) {
     <>
       {/* Backdrop (스크롤 차단 역할 포함) */}
       <div 
-        className="fixed inset-0 bg-black/50 z-[99] transition-opacity" 
+        className="fixed inset-0 bg-black/50 z-[99] animate-fade-in" 
+        onClick={handleClose} // 💡 [한글 주석] 어두운 배경 클릭 시에도 안전하게 닫기/리셋 처리 작동
         aria-hidden="true"
       />
       
       {/* Bottom Sheet */}
       <div 
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md h-[calc(100dvh-72px)] bg-[var(--color-bg)] rounded-t-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.08)] z-[100] transition-transform duration-300 flex flex-col"
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md h-[calc(100dvh-72px)] bg-[var(--color-bg)] rounded-t-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.08)] z-[100] animate-slide-up flex flex-col"
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-bottom-sheet-title"
