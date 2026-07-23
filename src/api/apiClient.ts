@@ -119,5 +119,6 @@ const request = async <T>(
 export const apiClient = {
   get: <T>(path: string, options?: ApiRequestOptions) => request<T>('GET', path, undefined, options),
   post: <T>(path: string, body?: unknown, options?: ApiRequestOptions) => request<T>('POST', path, body, options),
+  patch: <T>(path: string, body?: unknown, options?: ApiRequestOptions) => request<T>('PATCH', path, body, options), // 💡 [한글 주석] PATCH 요청용 메소드 추가
   delete: <T>(path: string, options?: ApiRequestOptions) => request<T>('DELETE', path, undefined, options),
 };
