@@ -1,6 +1,7 @@
 // src/components/domain/auth/AuthBottomSheet.tsx
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom'; // 💡 [한글 주석] 바텀시트 전체를 body 하위로 이관해 렌더링하기 위한 Portal 임포트
 import { LoginForm } from './LoginForm';
 import { SignupForm } from './SignupForm';
 import { MagicLinkForm } from './MagicLinkForm';
@@ -55,7 +56,7 @@ export function AuthBottomSheet({ isOpen, onClose }: Props) {
     setMode('login');
   };
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop (스크롤 차단 역할 포함) */}
       <div 
@@ -128,6 +129,7 @@ export function AuthBottomSheet({ isOpen, onClose }: Props) {
             </div>
           </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }
