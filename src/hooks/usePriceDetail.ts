@@ -39,6 +39,28 @@ interface DetailCacheEntry {
 const detailCache = new Map<string, DetailCacheEntry>();
 const DETAIL_CACHE_TTL = 30 * 1000; // 30초
 
+// 💡 [한글 주석] 사용자가 클릭하기 전 마우스 오버(Hover) 또는 터치 시점에 미리 백그라운드에서 API를 찔러두는 Prefetch 함수 구현
+export const prefetchPriceDetail = async (itemId: string | null, accessToken?: string | null) => {
+  if (!itemId) return;
+  const cached = detailCache.get(itemId);
+  if (cached && Date.now() - cached.fetchedAt < DETAIL_CACHE_TTL) return;
+
+  try {
+    const result = await marketService.getPriceDetail(itemId, { accessToken });
+    const hasData =
+      (result?.sourceRecords?.length ?? 0) > 0 ||
+      (result?.sourceItems?.length ?? 0) > 0;
+    if (result && hasData) {
+      detailCache.set(itemId, {
+        detail: result,
+        fetchedAt: Date.now(),
+      });
+    }
+  } catch (e) {
+    console.warn('[Prefetch] Failed to prefetch detail for', itemId, e);
+  }
+};
+
 export const usePriceDetail = (
   itemId: string | null,
   params: UsePriceDetailParams = {}

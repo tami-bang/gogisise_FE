@@ -12,6 +12,8 @@ import { InlineError } from '../components/common/InlineError';
 import { PriceDetailSheet } from '../components/domain/price-detail/PriceDetailSheet';
 import { marketService } from '../api/services/marketService';
 import { matchesSearch } from '../utils/koreanSearch';
+// 💡 [한글 주석] 상세 시세 미리 가져오기(Prefetch)를 위한 훅 헬퍼 임포트
+import { prefetchPriceDetail } from '../hooks/usePriceDetail';
 
 type AnimalType = 'BEEF' | 'PORK';
 type StorageType = 'CHILLED' | 'FROZEN';
@@ -284,11 +286,14 @@ export function AllPricesPage() {
 
             {!loading && filteredCategories.length > 0 && filteredCategories.map((node) => {
               const hasData = node.hasApiData;
+              const targetPath = `path:${node.path}`;
               return (
                 <button
                   key={node.ctgNo}
                   disabled={!hasData}
-                  onClick={() => hasData && setSelectedItemId(`path:${node.path}`)}
+                  onClick={() => hasData && setSelectedItemId(targetPath)}
+                  onMouseEnter={() => hasData && prefetchPriceDetail(targetPath)} // 💡 [한글 주석] 마우스 호버 시 상세 데이터 미리 호출
+                  onTouchStart={() => hasData && prefetchPriceDetail(targetPath)}  // 💡 [한글 주석] 터치 시 상세 데이터 즉시 미리 호출
                   className={`w-full text-left bg-[var(--color-surface)] p-[var(--spacing-20)] rounded-[var(--radius-xl)] border border-[var(--color-divider)] shadow-soft transition-all duration-200 flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] ${
                     hasData 
                       ? 'active:scale-[0.98] active:bg-[rgba(59,145,200,0.05)] cursor-pointer' 

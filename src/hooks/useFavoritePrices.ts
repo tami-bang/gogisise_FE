@@ -96,7 +96,11 @@ export function useFavoritePrices({
     }
 
     const controller = new AbortController();
-    setServerStatus('loading');
+    
+    // 💡 [한글 주석] 로컬 캐시에 이미 데이터가 존재한다면 백그라운드 갱신(SWR) 중에 'loading'으로 강제 전환하지 않음
+    if (serverFavorites.length === 0) {
+      setServerStatus('loading');
+    }
     setError(null);
 
     try {

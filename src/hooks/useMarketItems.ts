@@ -141,7 +141,11 @@ export function useMarketItems(params: UseMarketItemsParams = {}) {
     }
 
     const controller = new AbortController();
-    setStatus('loading');
+    
+    // 💡 [한글 주석] 이미 로컬 캐시에 데이터가 존재한다면 'loading' 상태로 변환하지 않고 백그라운드 갱신 (SWR)
+    if (items.length === 0) {
+      setStatus('loading');
+    }
     setError(null);
 
     try {
@@ -170,7 +174,10 @@ export function useMarketItems(params: UseMarketItemsParams = {}) {
 
     const controller = new AbortController();
 
-    setStatus('loading');
+    // 💡 [한글 주석] 이미 로컬 캐시에 데이터가 존재한다면 'loading' 상태로 변환하지 않고 백그라운드 갱신 (SWR)
+    if (items.length === 0) {
+      setStatus('loading');
+    }
     setError(null);
 
     fetchMarketItems(accessToken, controller.signal)
