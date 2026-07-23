@@ -219,6 +219,18 @@ export function MainPage() {
       });
   }, [categories, animalType, storageType, targetMasterList, searchQuery, favoritedCategoriesSet]);
 
+  // 💡 [한글 주석] 즐겨찾기 목록 조회가 성공하면, 상위 5개 등록 부위에 대해 미리 상세 시세를 백그라운드에서 Prefetch하여 최초 모달 진입 딜레이를 제거합니다.
+  useEffect(() => {
+    if (listStatus !== 'success' || !filteredCategories || filteredCategories.length === 0) return;
+    
+    const prefetchTargets = filteredCategories.slice(0, 5);
+    prefetchTargets.forEach((node) => {
+      if (node.hasApiData) {
+        prefetchPriceDetail(`path:${node.path}`);
+      }
+    });
+  }, [listStatus, filteredCategories]);
+
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
     setIsToastVisible(true);
