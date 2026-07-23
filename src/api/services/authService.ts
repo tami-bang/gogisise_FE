@@ -38,11 +38,11 @@ export const authService = {
     email: string,
     password: string,
     nickname: string,
-    _phone?: string
+    phone?: string
   ): Promise<AuthResponseData> => {
     const data = await apiClient.post<AuthResponseData>(
       `${AUTH_PATH}/signup`,
-      { email, password, nickname },
+      { email, password, nickname, phone },
       { skipAuth: true }
     );
     return withUserFallback(data);
