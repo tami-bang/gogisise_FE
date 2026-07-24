@@ -363,16 +363,69 @@ export function PriceDetailSheet({ isOpen, itemId, initialGrade, onClose, onFavo
     };
   }, [currentItems, detail?.changeAmount]);
 
-  const chartData = useMemo(
-    () => (detail?.priceHistory ?? [])
-      .filter((point) => typeof point.price === 'number')
-      .slice(-7)
-      .map((point) => ({
-        ...point,
-        label: point.marketDate.slice(5).replace('-', '.'),
-      })),
-    [detail?.priceHistory]
-  );
+  const chartData = useMemo(() => {
+    // 1. 기준일 결정 (마지막 수집일 우선, 없으면 오늘 날짜)
+    let endDate = new Date();
+    if (detail?.lastCollectedAt) {
+      const d = new Date(detail.lastCollectedAt);
+      if (!Number.isNaN(d.getTime())) {
+        endDate = d;
+      }
+    }
+
+    // 2. 과거 6일전부터 오늘까지 7일간의 날짜 배열 생성 (YYYY-MM-DD 형식)
+    const dateList: string[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const targetDate = new Date(endDate);
+      targetDate.setDate(endDate.getDate() - i);
+      const yyyy = targetDate.getFullYear();
+      const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
+      const dd = String(targetDate.getDate()).padStart(2, '0');
+      dateList.push(`${yyyy}-${mm}-${dd}`);
+    }
+
+    // 3. 백엔드 시세 데이터 Map 구조로 변환
+    const historyMap = new Map<string, number>();
+    if (Array.isArray(detail?.priceHistory)) {
+      detail.priceHistory.forEach((point) => {
+        if (point.marketDate && typeof point.price === 'number') {
+          historyMap.set(point.marketDate, point.price);
+        }
+      });
+    }
+
+    // 4. 주말/휴무일 등 비어있는 날짜의 시세 가격을 직전 영업일의 유효 가격으로 폴백 적용
+    let lastValidPrice: number | null = null;
+    const sortedHistory = Array.isArray(detail?.priceHistory)
+      ? [...detail.priceHistory]
+          .filter((p) => typeof p.price === 'number')
+          .sort((a, b) => a.marketDate.localeCompare(b.marketDate))
+      : [];
+    if (sortedHistory.length > 0) {
+      lastValidPrice = sortedHistory[0].price;
+    }
+
+    return dateList.map((dateStr) => {
+      const rawPrice = historyMap.get(dateStr);
+      let finalPrice: number | null = null;
+
+      if (rawPrice !== undefined) {
+        finalPrice = rawPrice;
+        lastValidPrice = rawPrice;
+      } else {
+        // 데이터 누락 시 직전 가격 계승 (선이 평평하게 연결됨)
+        finalPrice = lastValidPrice;
+      }
+
+      return {
+        marketDate: dateStr,
+        price: finalPrice,
+        rawPrice: rawPrice ?? null,
+        label: dateStr.slice(5).replace('-', '.'),
+      };
+    });
+  }, [detail?.priceHistory, detail?.lastCollectedAt]);
+
   const selectedChartPoint = useMemo(
     () => chartData.find((point) => point.marketDate === selectedChartDate) ?? chartData.at(-1),
     [chartData, selectedChartDate]
@@ -579,7 +632,10 @@ export function PriceDetailSheet({ isOpen, itemId, initialGrade, onClose, onFavo
                   <h3 id="seven-day-price-title" className="text-label text-[var(--text-strong)]">최근 7일 가격 추이</h3>
                   {selectedChartPoint && (
                     <p className="text-base font-black tabular-nums text-[var(--color-secondary)]">
-                      kg당 시세 : {Number(selectedChartPoint.price).toLocaleString()}원
+                      kg당 시세 : {selectedChartPoint.price != null ? `${Number(selectedChartPoint.price).toLocaleString()}원` : 'N/A'}
+                      {selectedChartPoint.rawPrice === null && (
+                        <span className="text-xs font-normal text-gray-400 ml-2">(직전 가격 기준)</span>
+                      )}
                     </p>
                   )}
                 </div>
@@ -601,6 +657,7 @@ export function PriceDetailSheet({ isOpen, itemId, initialGrade, onClose, onFavo
                           type="monotone"
                           dataKey="price"
                           isAnimationActive={false}
+                          connectNulls={true}
                           stroke="var(--color-secondary)"
                           strokeWidth={3}
                           dot={{ r: 4, fill: 'var(--color-surface)', stroke: 'var(--color-secondary)', strokeWidth: 2 }}
@@ -623,15 +680,19 @@ export function PriceDetailSheet({ isOpen, itemId, initialGrade, onClose, onFavo
                           key={point.marketDate}
                           type="button"
                           onClick={() => setSelectedChartDate(point.marketDate)}
-                          className="min-h-11 min-w-14 rounded-[var(--radius-sm)] px-[var(--spacing-8)] text-xs font-bold tabular-nums transition-colors sm:min-w-0 sm:flex-1"
+                          className="min-h-11 min-w-14 rounded-[var(--radius-sm)] px-[var(--spacing-8)] py-1 text-xs font-bold tabular-nums transition-colors sm:min-w-0 sm:flex-1 flex flex-col items-center justify-center gap-0.5"
                           style={{
                             backgroundColor: isSelected ? '#3b91c8' : 'var(--color-surface)',
-                            color: isSelected ? '#ffffff' : 'var(--text-muted)',
+                            color: isSelected ? '#ffffff' : (point.rawPrice === null ? '#c0c0c0' : 'var(--text-muted)'),
+                            border: '1px solid var(--color-divider)',
                           }}
                           aria-pressed={isSelected}
-                          aria-label={`${point.marketDate}, kg당 ${Number(point.price).toLocaleString()}원`}
+                          aria-label={`${point.marketDate}, kg당 ${point.price != null ? Number(point.price).toLocaleString() : 'N/A'}원`}
                         >
-                          {point.label}
+                          <span>{point.label}</span>
+                          {point.rawPrice === null && (
+                            <span className="text-[9px] font-normal scale-90 opacity-70">이전</span>
+                          )}
                         </button>
                       );
                     })}
