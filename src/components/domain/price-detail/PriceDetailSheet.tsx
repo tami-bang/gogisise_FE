@@ -667,7 +667,9 @@ export function PriceDetailSheet({ isOpen, itemId, initialGrade, onClose, onFavo
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={chartData} margin={{ top: 8, right: 18, left: 18, bottom: 8 }}>
                         <YAxis
-                          hide={true}
+                          width={0}
+                          tick={false}
+                          axisLine={false}
                           domain={yAxisDomain}
                         />
                         <Tooltip
