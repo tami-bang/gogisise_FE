@@ -431,6 +431,29 @@ export function PriceDetailSheet({ isOpen, itemId, initialGrade, onClose, onFavo
     [chartData, selectedChartDate]
   );
 
+  // 💡 [한글 주석] Recharts 엔진이 domain 속성에 함수(Callback)가 들어왔을 때 오작동하는 현상을 막기 위해,
+  // 컴포넌트 단에서 Y축의 최저/최고 임계치를 직접 연산하여 상수 배열(Domain)로 명확히 바인딩합니다.
+  const yAxisDomain = useMemo<[number, number]>(() => {
+    const prices = chartData
+      .map((d) => d.price)
+      .filter((p): p is number => typeof p === 'number');
+
+    if (prices.length === 0) return [0, 100000];
+
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+
+    // 최고가와 최저가가 같거나 격차가 1,000원 미만인 경우 억지로 일직선이 되는 것을 막기 위해 강제 여유폭 부여
+    if (minPrice === maxPrice || maxPrice - minPrice < 1000) {
+      return [minPrice - 2000, maxPrice + 2000];
+    }
+
+    return [
+      Math.floor(minPrice * 0.98),
+      Math.ceil(maxPrice * 1.02),
+    ];
+  }, [chartData]);
+
   if (!isOpen) return null;
 
   return (
@@ -645,7 +668,7 @@ export function PriceDetailSheet({ isOpen, itemId, initialGrade, onClose, onFavo
                       <LineChart data={chartData} margin={{ top: 8, right: 18, left: 18, bottom: 8 }}>
                         <YAxis
                           hide={true}
-                          domain={[(dataMin) => Math.floor(dataMin * 0.98), (dataMax) => Math.ceil(dataMax * 1.02)]}
+                          domain={yAxisDomain}
                         />
                         <Tooltip
                           formatter={(value) => [`${Number(value).toLocaleString()}원`, 'kg당 시세']}
