@@ -431,9 +431,8 @@ export function PriceDetailSheet({ isOpen, itemId, initialGrade, onClose, onFavo
     [chartData, selectedChartDate]
   );
 
-  // 💡 [한글 주석] Recharts 엔진이 domain 속성에 함수(Callback)가 들어왔을 때 오작동하는 현상을 막기 위해,
-  // 컴포넌트 단에서 Y축의 최저/최고 임계치를 직접 연산하여 상수 배열(Domain)로 명확히 바인딩합니다.
-  const yAxisDomain = useMemo<[number, number]>(() => {
+  // 💡 [한글 주석] 최근 7일 가격 변동폭에 알맞게 그래프가 위아래로 역동적으로 스케일링되도록 Y축 도메인을 강제 보정 계산합니다.
+  const yDomain = useMemo<[number, number]>(() => {
     const prices = chartData
       .map((d) => d.price)
       .filter((p): p is number => typeof p === 'number');
@@ -443,14 +442,12 @@ export function PriceDetailSheet({ isOpen, itemId, initialGrade, onClose, onFavo
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
 
-    // 최고가와 최저가가 같거나 격차가 1,000원 미만인 경우 억지로 일직선이 되는 것을 막기 위해 강제 여유폭 부여
-    if (minPrice === maxPrice || maxPrice - minPrice < 1000) {
-      return [minPrice - 2000, maxPrice + 2000];
-    }
+    const diff = maxPrice - minPrice;
+    const padding = diff === 0 ? 2000 : Math.max(diff * 0.2, 1000);
 
     return [
-      Math.floor(minPrice * 0.98),
-      Math.ceil(maxPrice * 1.02),
+      Math.floor(minPrice - padding),
+      Math.ceil(maxPrice + padding),
     ];
   }, [chartData]);
 
@@ -669,10 +666,8 @@ export function PriceDetailSheet({ isOpen, itemId, initialGrade, onClose, onFavo
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={chartData} margin={{ top: 8, right: 18, left: 18, bottom: 8 }}>
                         <YAxis
-                          width={0}
-                          tick={false}
-                          axisLine={false}
-                          domain={yAxisDomain}
+                          domain={yDomain}
+                          hide={true}
                         />
                         <Tooltip
                           formatter={(value) => [`${Number(value).toLocaleString()}원`, 'kg당 시세']}
