@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Line, LineChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { Line, LineChart, ResponsiveContainer, Tooltip, YAxis } from 'recharts';
 // 💡 훅(Hook): 특정 기능을 재사용 가능하도록 묶어놓은 함수. 음식점 주방의 '레시피 카드'와 같습니다.
 import { usePriceDetail } from '../../../hooks/usePriceDetail';
 import type { TrendStatus } from '../../../api/types/market';
@@ -643,6 +643,10 @@ export function PriceDetailSheet({ isOpen, itemId, initialGrade, onClose, onFavo
                   <div className="h-24 w-full" role="img" aria-label="최근 7일 kg당 평균 시세 차트">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={chartData} margin={{ top: 8, right: 18, left: 18, bottom: 8 }}>
+                        <YAxis
+                          hide={true}
+                          domain={[(dataMin) => Math.floor(dataMin * 0.98), (dataMax) => Math.ceil(dataMax * 1.02)]}
+                        />
                         <Tooltip
                           formatter={(value) => [`${Number(value).toLocaleString()}원`, 'kg당 시세']}
                           labelFormatter={(_, payload) => payload[0]?.payload?.marketDate ?? ''}
