@@ -454,6 +454,8 @@ export function PriceDetailSheet({ isOpen, itemId, initialGrade, onClose, onFavo
     ];
   }, [chartData]);
 
+  console.log("DEBUG CHART DATA:", chartData.map(d => `${d.marketDate}: ${d.price} (raw: ${d.rawPrice})`));
+
   if (!isOpen) return null;
 
   return (
