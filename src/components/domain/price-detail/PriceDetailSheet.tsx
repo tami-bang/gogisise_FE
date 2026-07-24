@@ -474,12 +474,12 @@ export function PriceDetailSheet({ isOpen, itemId, initialGrade, onClose, onFavo
           </div>
         )}
 
-        {/* ③ 데이터 없음: 안내 문구 */}
+        {/* ③ 데이터 없음: 안내 문구 (품절 안내로 교정) */}
         {(status === 'empty' || status === 'success') && items.length === 0 && (
           <div className="py-12 text-center">
             <p className="text-2xl mb-2">🥩</p>
-            <p className="text-gray-600 font-bold mb-1">현재 수집된 도매 매물이 없습니다.</p>
-            <p className="text-gray-400 text-sm">잠시 후 다시 시도해 주세요.</p>
+            <p className="text-gray-600 font-bold mb-1">현재 품절된 상품입니다.</p>
+            <p className="text-gray-400 text-sm">재입고 시 가격 정보가 다시 표시됩니다.</p>
           </div>
         )}
 
